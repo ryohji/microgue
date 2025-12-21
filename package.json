@@ -1,0 +1,32 @@
+{
+  "name": "mycrogue",
+  "version": "0.1.0",
+  "description": "A turn-based roguelike game with 60fps game engine approach",
+  "main": "dist/main.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc",
+    "start": "npm run build && node dist/main.js",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "roguelike",
+    "game",
+    "typescript",
+    "console"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "@types/seedrandom": "^3.0.8",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "seedrandom": "^3.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
