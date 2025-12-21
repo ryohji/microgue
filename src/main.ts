@@ -24,8 +24,8 @@ function moveCursor(pos: Position, dx: number, dy: number): Position {
 function update(
   state: GameState,
   input: InputState,
-  deltaTime: number,
-  rng: RandomGenerator
+  _deltaTime: number,
+  _rng: RandomGenerator
 ): GameState {
   let newState = state;
 
