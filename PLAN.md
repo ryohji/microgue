@@ -32,11 +32,11 @@
 
 #### 1.2 型定義
 - [x] `src/types/Input.ts`: KeyPress 型
-- [ ] `src/types/GameState.ts`: 最小限のゲーム状態
-- [ ] `src/core/random.ts`: RandomGenerator 型定義
+- [x] `src/types/GameState.ts`: 最小限のゲーム状態
+- [x] `src/core/random.ts`: RandomGenerator 型定義
 
 #### 1.3 入力システム
-- [ ] `src/input/inputSystem.ts`
+- [x] `src/input/inputSystem.ts`
   - createInputSystem() 実装
   - readline によるキー入力収集
   - キューイング機構
