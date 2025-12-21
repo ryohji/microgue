@@ -56,7 +56,5 @@ export async function runGameLoop(
   }
 
   // クリーンアップ
-  if (callbacks.cleanup) {
-    callbacks.cleanup();
-  }
+  callbacks.cleanup?.();
 }

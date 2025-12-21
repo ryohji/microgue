@@ -90,22 +90,21 @@ function render(state: GameState): readonly string[] {
 
 // メイン実行
 async function main(): Promise<void> {
-  const inputSystem = createInputSystem();
+  let exitCode = 0;
+  const { getState, cleanup } = createInputSystem();
 
   try {
-    await runGameLoop(initialState, {
-      getInput: () => inputSystem.getState(),
-      update,
-      render,
-      cleanup: () => inputSystem.cleanup()
-    });
-
+    const callbacks = { getInput: getState, update, render };
+    await runGameLoop(initialState, callbacks);
     console.log('\nGame ended. Thank you for playing!');
   } catch (error) {
+    exitCode = 1;
     console.error('Error:', error);
-    inputSystem.cleanup();
-    process.exit(1);
+  } finally {
+    cleanup();
   }
+
+  process.exit(exitCode);
 }
 
 main();
