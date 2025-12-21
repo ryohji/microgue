@@ -42,19 +42,19 @@
   - キューイング機構
 
 #### 1.4 描画システム
-- [ ] `src/rendering/render.ts`
+- [x] `src/rendering/render.ts`
   - renderScreen() 実装
   - console.clear() による画面クリア
   - 文字列配列の出力
 
 #### 1.5 ゲームループ
-- [ ] `src/core/gameLoop.ts`
+- [x] `src/core/gameLoop.ts`
   - 60fps 制御
   - deltaTime 計算
   - 入力・更新・描画の統合
 
 #### 1.6 動作確認デモ
-- [ ] `src/main.ts`
+- [x] `src/main.ts`
   - 矢印キーでカーソル移動
   - カーソル位置を画面に表示
   - 'q' キーで終了
