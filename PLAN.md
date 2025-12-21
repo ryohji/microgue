@@ -21,17 +21,17 @@
 ### 実装内容
 
 #### 1.1 プロジェクト初期化
-- [ ] ディレクトリ構造作成
-- [ ] package.json 作成
+- [x] ディレクトリ構造作成
+- [x] package.json 作成
   - TypeScript 設定
   - seedrandom 依存追加
-- [ ] tsconfig.json 作成
+- [x] tsconfig.json 作成
   - strict mode 有効化
   - ES2020 ターゲット
-- [ ] .gitignore 作成
+- [x] .gitignore 作成
 
 #### 1.2 型定義
-- [ ] `src/types/Input.ts`: KeyPress 型
+- [x] `src/types/Input.ts`: KeyPress 型
 - [ ] `src/types/GameState.ts`: 最小限のゲーム状態
 - [ ] `src/core/random.ts`: RandomGenerator 型定義
 
