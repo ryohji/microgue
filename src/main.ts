@@ -12,12 +12,26 @@ const initialState: GameState = {
   running: true
 };
 
-// カーソル移動処理 (ピュア関数)
-function moveCursor(pos: Position, dx: number, dy: number): Position {
-  return {
-    x: Math.max(0, Math.min(19, pos.x + dx)),
-    y: Math.max(0, Math.min(19, pos.y + dy))
-  };
+// エントリーポイント
+main();
+
+// メイン実行
+async function main(): Promise<void> {
+  let exitCode = 0;
+  const { getState, cleanup } = createInputSystem();
+
+  try {
+    const callbacks = { getInput: getState, update, render };
+    await runGameLoop(initialState, callbacks);
+    console.log('\nGame ended. Thank you for playing!');
+  } catch (error) {
+    exitCode = 1;
+    console.error('Error:', error);
+  } finally {
+    cleanup();
+  }
+
+  process.exit(exitCode);
 }
 
 // ゲーム状態更新 (ピュア関数)
@@ -88,23 +102,10 @@ function render(state: GameState): readonly string[] {
   return lines;
 }
 
-// メイン実行
-async function main(): Promise<void> {
-  let exitCode = 0;
-  const { getState, cleanup } = createInputSystem();
-
-  try {
-    const callbacks = { getInput: getState, update, render };
-    await runGameLoop(initialState, callbacks);
-    console.log('\nGame ended. Thank you for playing!');
-  } catch (error) {
-    exitCode = 1;
-    console.error('Error:', error);
-  } finally {
-    cleanup();
-  }
-
-  process.exit(exitCode);
+// カーソル移動処理 (ピュア関数)
+function moveCursor(pos: Position, dx: number, dy: number): Position {
+  return {
+    x: Math.max(0, Math.min(19, pos.x + dx)),
+    y: Math.max(0, Math.min(19, pos.y + dy))
+  };
 }
-
-main();
