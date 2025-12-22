@@ -2,6 +2,7 @@
 
 import { createInputSystem } from './input/inputSystem.js';
 import { runGameLoop } from './core/gameLoop.js';
+import { cleanupRenderer } from './rendering/render.js';
 import type { GameState, Position } from './types/GameState.js';
 import type { InputState } from './types/Input.js';
 import type { RandomGenerator } from './core/random.js';
@@ -29,6 +30,7 @@ async function main(): Promise<void> {
     console.error('Error:', error);
   } finally {
     cleanup();
+    cleanupRenderer();
   }
 
   process.exit(exitCode);
