@@ -28,7 +28,9 @@ export function renderCombat(state: CombatState): readonly string[] {
   lines.push('Entities:');
   for (const entity of state.entities) {
     const hpBar = renderHPBar(entity);
-    lines.push(`${entity.symbol} ${entity.id}: ${hpBar} ${entity.hp}/${entity.stats.maxHp}`);
+    const hp = String(entity.hp).padStart(3);
+    const maxHp = String(entity.stats.maxHp).padStart(3);
+    lines.push(`${entity.symbol} ${entity.id.padEnd(8)}: ${hpBar} ${hp}/${maxHp}`);
   }
 
   lines.push('');
@@ -38,8 +40,9 @@ export function renderCombat(state: CombatState): readonly string[] {
   for (const entity of state.entities) {
     const gauge = state.timeline.get(entity.id) ?? 0;
     const bar = renderGaugeBar(gauge);
-    const canAct = gauge >= 100 ? ' [READY]' : '';
-    lines.push(`${entity.symbol} ${entity.id}: ${bar} ${gauge.toFixed(0)}${canAct}`);
+    const gaugeStr = String(Math.floor(gauge)).padStart(3);
+    const canAct = gauge >= 100 ? ' [READY]' : '        ';
+    lines.push(`${entity.symbol} ${entity.id.padEnd(8)}: ${bar} ${gaugeStr}${canAct}`);
   }
 
   lines.push('');

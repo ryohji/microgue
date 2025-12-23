@@ -66,8 +66,12 @@ export function executeAction(
   switch (action.type) {
     case 'move':
       if (action.targetPos) {
-        const moved = moveEntity(actor, action.targetPos);
-        newEntities = updateEntity(newEntities, moved);
+        // 移動先に他のエンティティがいないかチェック
+        const blocking = findEntityAt(newEntities, action.targetPos);
+        if (!blocking) {
+          const moved = moveEntity(actor, action.targetPos);
+          newEntities = updateEntity(newEntities, moved);
+        }
       }
       break;
 
