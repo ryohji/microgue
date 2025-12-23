@@ -3,12 +3,19 @@
 import type { Entity } from '../types/Entity.js';
 
 // タイムラインゲージを蓄積
+// 誰かが100以上になったら、それ以降の蓄積を停止する
 export function accumulateTimeline(
   timeline: ReadonlyMap<string, number>,
   entities: readonly Entity[],
   deltaTime: number
 ): Map<string, number> {
   const newTimeline = new Map(timeline);
+
+  // 誰かが既に100以上なら蓄積しない
+  const hasReady = Array.from(timeline.values()).some(gauge => gauge >= 100);
+  if (hasReady) {
+    return newTimeline;
+  }
 
   for (const entity of entities) {
     const current = newTimeline.get(entity.id) ?? 0;

@@ -1,8 +1,12 @@
 // ゲームループ: 60fps 制御とゲームの更新・描画
 
-import type { GameState } from '../types/GameState.js';
 import type { InputState } from '../types/Input.js';
 import type { RandomGenerator } from './random.js';
+
+// ゲームループで扱う状態の基底インターフェース
+export interface RunnableState {
+  readonly running: boolean;
+}
 
 // ゲームループのオプション
 export interface GameLoopOptions {
@@ -11,17 +15,17 @@ export interface GameLoopOptions {
 }
 
 // ゲームループのコールバック
-export interface GameLoopCallbacks {
+export interface GameLoopCallbacks<T extends RunnableState> {
   getInput: () => InputState;
-  update: (state: GameState, input: InputState, deltaTime: number, rng: RandomGenerator) => GameState;
-  render: (state: GameState) => readonly string[];
+  update: (state: T, input: InputState, deltaTime: number, rng: RandomGenerator) => T;
+  render: (state: T) => readonly string[];
   cleanup?: () => void;
 }
 
 // ゲームループを実行
-export async function runGameLoop(
-  initialState: GameState,
-  callbacks: GameLoopCallbacks,
+export async function runGameLoop<T extends RunnableState>(
+  initialState: T,
+  callbacks: GameLoopCallbacks<T>,
   options: GameLoopOptions = {}
 ): Promise<void> {
   const targetFPS = options.targetFPS ?? 60;
