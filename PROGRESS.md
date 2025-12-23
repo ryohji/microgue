@@ -3,8 +3,8 @@
 ## プロジェクト概要
 
 - **開始日**: 2025-12-21
-- **現在フェーズ**: Phase 1 完了 ✅
-- **次のフェーズ**: Phase 2 (基本戦闘)
+- **現在フェーズ**: Phase 2 (基本戦闘) - 実装中
+- **前フェーズ**: Phase 1 完了 ✅
 
 ---
 
@@ -91,23 +91,23 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 
 ## Phase 2: 基本戦闘システム
 
-### 状態: 未着手
+### 状態: 実装中
 ### 目標: グリッドベースの戦術戦闘の基礎
 
 #### タスク進捗
 
 ##### 2.1 型定義
-- [ ] `src/types/Entity.ts`
-- [ ] `src/types/CombatState.ts`
+- [x] `src/types/Entity.ts`
+- [x] `src/types/CombatState.ts`
 
 ##### 2.2 グリッドシステム
-- [ ] `src/combat/grid.ts`
+- [x] `src/combat/grid.ts`
 
 ##### 2.3 エンティティ操作
-- [ ] `src/combat/entity.ts`
+- [x] `src/combat/entity.ts`
 
 ##### 2.4 タイムラインシステム
-- [ ] `src/combat/timeline.ts`
+- [x] `src/combat/timeline.ts`
 
 ##### 2.5 戦闘更新ロジック
 - [ ] `src/combat/combat.ts`

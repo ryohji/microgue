@@ -84,29 +84,29 @@ npm start
 ### 実装内容
 
 #### 2.1 型定義
-- [ ] `src/types/Entity.ts`
+- [x] `src/types/Entity.ts`
   - Position, Stats
   - Entity, Player, Enemy
-- [ ] `src/types/CombatState.ts`
+- [x] `src/types/CombatState.ts`
   - Grid, CombatState
   - Action 定義
 
 #### 2.2 グリッドシステム
-- [ ] `src/combat/grid.ts`
+- [x] `src/combat/grid.ts`
   - createGrid(): グリッド生成
   - isValidPosition(): 位置チェック
   - getDistance(): 距離計算
   - findPath(): パス探索 (A*)
 
 #### 2.3 エンティティ操作
-- [ ] `src/combat/entity.ts`
+- [x] `src/combat/entity.ts`
   - createPlayer(): プレイヤー生成
   - createEnemy(): 敵生成
   - moveEntity(): エンティティ移動
   - damageEntity(): ダメージ適用
 
 #### 2.4 タイムラインシステム
-- [ ] `src/combat/timeline.ts`
+- [x] `src/combat/timeline.ts`
   - accumulateTimeline(): ゲージ蓄積
   - consumeActionPoints(): AP 消費
   - getNextActor(): 次の行動者決定
