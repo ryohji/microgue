@@ -2,6 +2,7 @@
 
 import type { CombatState } from '../types/CombatState.js';
 import type { Entity } from '../types/Entity.js';
+import type { Dungeon, Room } from '../types/Dungeon.js';
 
 // 戦闘画面を描画
 export function renderCombat(state: CombatState): readonly string[] {
@@ -74,4 +75,57 @@ function renderGaugeBar(gauge: number): string {
   const barLength = 20;
   const filled = Math.min(barLength, Math.floor(gauge / 5));
   return '[' + '='.repeat(filled) + ' '.repeat(barLength - filled) + ']';
+}
+
+// ダンジョンナビゲーション画面を描画
+export function renderDungeonNav(dungeon: Dungeon, availableRooms: readonly Room[]): readonly string[] {
+  const lines: string[] = [];
+  const floor = dungeon.floors[dungeon.currentFloor];
+
+  lines.push('='.repeat(50));
+  lines.push(`Floor ${floor.floorNumber} - Choose Your Path`);
+  lines.push('='.repeat(50));
+  lines.push('');
+
+  // 選択可能な部屋をリスト表示
+  lines.push('Available Rooms:');
+  lines.push('');
+
+  availableRooms.forEach((room, index) => {
+    const number = String(index + 1).padStart(2);
+    const typeSymbol = getRoomTypeSymbol(room.type);
+    const typeName = getRoomTypeName(room.type);
+    const enemyInfo = room.enemyCount !== undefined && room.enemyCount > 0
+      ? ` (${room.enemyCount} enemies)`
+      : '';
+
+    lines.push(`  [${number}] ${typeSymbol} ${typeName}${enemyInfo}`);
+  });
+
+  lines.push('');
+  lines.push('Controls: 1-9 to select room, Q to quit');
+
+  return lines;
+}
+
+// 部屋タイプのシンボル
+function getRoomTypeSymbol(type: Room['type']): string {
+  switch (type) {
+    case 'normal': return '⚔';
+    case 'elite': return '☠';
+    case 'horde': return '⚡';
+    case 'boss': return '👑';
+    case 'rest': return '💚';
+  }
+}
+
+// 部屋タイプの名前
+function getRoomTypeName(type: Room['type']): string {
+  switch (type) {
+    case 'normal': return 'Normal Combat';
+    case 'elite': return 'Elite Enemy';
+    case 'horde': return 'Horde Battle';
+    case 'boss': return 'Boss Room';
+    case 'rest': return 'Rest Site';
+  }
 }

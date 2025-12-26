@@ -2,10 +2,12 @@
 
 import type { InputState } from '../types/Input.js';
 import type { RandomGenerator } from './random.js';
+import { renderScreen } from '../rendering/render.js';
 
 // ゲームループで扱う状態の基底インターフェース
-export interface RunnableState {
+export interface AppState {
   readonly running: boolean;
+  readonly clearScreen?: boolean; // true なら画面を完全にクリア
 }
 
 // ゲームループのオプション
@@ -15,7 +17,7 @@ export interface GameLoopOptions {
 }
 
 // ゲームループのコールバック
-export interface GameLoopCallbacks<T extends RunnableState> {
+export interface GameLoopCallbacks<T extends AppState> {
   getInput: () => InputState;
   update: (state: T, input: InputState, deltaTime: number, rng: RandomGenerator) => T;
   render: (state: T) => readonly string[];
@@ -23,7 +25,7 @@ export interface GameLoopCallbacks<T extends RunnableState> {
 }
 
 // ゲームループを実行
-export async function runGameLoop<T extends RunnableState>(
+export async function runGameLoop<T extends AppState>(
   initialState: T,
   callbacks: GameLoopCallbacks<T>,
   options: GameLoopOptions = {}
@@ -50,8 +52,7 @@ export async function runGameLoop<T extends RunnableState>(
     const renderLines = callbacks.render(state);
 
     // 画面描画 (副作用)
-    const { renderScreen } = await import('../rendering/render.js');
-    renderScreen(renderLines);
+    renderScreen(renderLines, state.clearScreen);
 
     // フレームレート制御
     const elapsed = performance.now() - currentTime;
