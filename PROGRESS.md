@@ -1,4 +1,4 @@
-# mycrogue - 進捗管理
+# microgue - 進捗管理
 
 ## プロジェクト概要
 

@@ -1,5 +1,5 @@
 {
-  "name": "mycrogue",
+  "name": "microgue",
   "version": "0.1.0",
   "description": "A turn-based roguelike game with 60fps game engine approach",
   "main": "dist/main.js",

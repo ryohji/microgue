@@ -1,4 +1,4 @@
-# mycrogue - システム設計書
+# microgue - システム設計書
 
 ## プロジェクト概要
 
@@ -458,7 +458,7 @@ interface GameState {
 ## ディレクトリ構造
 
 ```
-mycrogue/
+microgue/
 ├── src/
 │   ├── types/                    # データ型定義
 │   │   ├── GameState.ts

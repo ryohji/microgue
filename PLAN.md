@@ -1,4 +1,4 @@
-# mycrogue - 作業計画
+# microgue - 作業計画
 
 ## 実装方針
 
