@@ -3,6 +3,7 @@
 import type { Entity, Player, Enemy } from '../types/Entity.js';
 import type { Position } from '../types/GameState.js';
 import type { RandomGenerator } from '../core/random.js';
+import { aggregateEntityEffects } from '../items/effects.js';
 
 // プレイヤーを生成
 export function createPlayer(pos: Position): Player {
@@ -48,10 +49,56 @@ export function moveEntity(entity: Entity, newPos: Position): Entity {
   return { ...entity, pos: newPos };
 }
 
-// エンティティにダメージを与える
-export function damageEntity(entity: Entity, attacker: Entity): Entity {
-  const damage = Math.max(1, attacker.stats.attack - entity.stats.defense);
-  const newHp = Math.max(0, entity.hp - damage);
+// エンティティにダメージを与える（レリック効果を考慮）
+export function damageEntity(entity: Entity, attacker: Entity, rng: RandomGenerator = Math.random): Entity {
+  // 攻撃者と防御者のレリック効果を集計
+  const attackerEffects = aggregateEntityEffects(attacker);
+  const defenderEffects = aggregateEntityEffects(entity);
+
+  // 基本ダメージ計算
+  let baseDamage = attacker.stats.attack - entity.stats.defense;
+
+  // 攻撃者のボーナスダメージを追加
+  baseDamage += attackerEffects.bonusDamage;
+
+  // 防御者の攻撃力低下デバフを適用
+  baseDamage *= (100 - defenderEffects.attackDownPercent) / 100;
+
+  // クリティカルヒット判定
+  const isCritical = rng() * 100 < attackerEffects.criticalChance;
+  if (isCritical) {
+    baseDamage *= attackerEffects.criticalMultiplier;
+  }
+
+  // 防御者のダメージ軽減を適用
+  baseDamage -= defenderEffects.damageReduction;
+
+  // 最低ダメージは1
+  let finalDamage = Math.max(1, Math.floor(baseDamage));
+
+  // DoTダメージを追加
+  if (attackerEffects.dotDamage > 0) {
+    finalDamage += attackerEffects.dotDamage;
+  }
+
+  // ダメージを適用
+  let newHp = Math.max(0, entity.hp - finalDamage);
+
+  // ライフスティール効果（攻撃者のHP回復は呼び出し側で処理）
+
+  return { ...entity, hp: newHp };
+}
+
+// ライフスティール効果によるHP回復を計算
+export function calculateLifesteal(attacker: Entity, damageDealt: number): number {
+  const attackerEffects = aggregateEntityEffects(attacker);
+  const healAmount = Math.floor(damageDealt * attackerEffects.lifestealPercent / 100);
+  return healAmount;
+}
+
+// エンティティのHPを回復
+export function healEntity(entity: Entity, amount: number): Entity {
+  const newHp = Math.min(entity.stats.maxHp, entity.hp + amount);
   return { ...entity, hp: newHp };
 }
 

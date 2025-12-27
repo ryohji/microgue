@@ -48,6 +48,7 @@ export function createInputSystem(): InputSystem {
       if (process.stdin.isTTY) {
         process.stdin.setRawMode(false);
       }
+      process.stdin.pause();
     }
   };
 }

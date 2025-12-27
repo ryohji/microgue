@@ -1,0 +1,117 @@
+[
+  {
+    "id": "dragon_lord",
+    "name": "Dragon Lord",
+    "symbol": "D",
+    "stats": {
+      "maxHp": 150,
+      "attack": 25,
+      "defense": 10,
+      "speed": 8
+    },
+    "equippedRelics": [
+      {
+        "id": "dragon_scale_armor",
+        "name": "Dragon Scale Armor",
+        "type": "majorRelic",
+        "rarity": "epic",
+        "description": "Ancient dragon scales providing massive defense",
+        "effects": [
+          { "type": "damageReduction", "value": 5 },
+          { "type": "maxHpBoost", "value": 50 }
+        ]
+      },
+      {
+        "id": "flame_aura",
+        "name": "Flame Aura",
+        "type": "majorRelic",
+        "rarity": "rare",
+        "description": "Surrounds the wielder with burning flames",
+        "effects": [
+          { "type": "dotDamage", "value": 3 },
+          { "type": "bonusDamage", "value": 10 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "shadow_knight",
+    "name": "Shadow Knight",
+    "symbol": "K",
+    "stats": {
+      "maxHp": 120,
+      "attack": 30,
+      "defense": 8,
+      "speed": 12
+    },
+    "equippedRelics": [
+      {
+        "id": "shadow_blade",
+        "name": "Shadow Blade",
+        "type": "majorRelic",
+        "rarity": "epic",
+        "description": "A blade forged in darkness with devastating critical strikes",
+        "effects": [
+          { "type": "critical", "value": 30 },
+          { "type": "bonusDamage", "value": 15 }
+        ]
+      },
+      {
+        "id": "cloak_of_evasion",
+        "name": "Cloak of Evasion",
+        "type": "majorRelic",
+        "rarity": "rare",
+        "description": "Makes the wearer incredibly hard to hit",
+        "effects": [
+          { "type": "evasionBoost", "value": 25 },
+          { "type": "speedBoost", "value": 3 }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "void_archon",
+    "name": "Void Archon",
+    "symbol": "V",
+    "stats": {
+      "maxHp": 100,
+      "attack": 20,
+      "defense": 5,
+      "speed": 15
+    },
+    "equippedRelics": [
+      {
+        "id": "void_scepter",
+        "name": "Void Scepter",
+        "type": "majorRelic",
+        "rarity": "epic",
+        "description": "Channel the power of the void to weaken enemies",
+        "effects": [
+          { "type": "attackDown", "value": 20 },
+          { "type": "speedDown", "value": 15 }
+        ]
+      },
+      {
+        "id": "lifesteal_orb",
+        "name": "Lifesteal Orb",
+        "type": "majorRelic",
+        "rarity": "rare",
+        "description": "Drains life from enemies with each strike",
+        "effects": [
+          { "type": "lifesteal", "value": 30 },
+          { "type": "bonusDamage", "value": 8 }
+        ]
+      },
+      {
+        "id": "swift_boots",
+        "name": "Swift Boots",
+        "type": "majorRelic",
+        "rarity": "common",
+        "description": "Enhances movement and reaction speed",
+        "effects": [
+          { "type": "speedBoost", "value": 5 }
+        ]
+      }
+    ]
+  }
+]

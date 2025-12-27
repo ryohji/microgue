@@ -1,268 +1,202 @@
-// Phase 5 動作確認デモ: メタプログレッションシステムの可視化
+// Phase 6: ボス戦デモ - レリック装備ボスとの戦闘
 
-import { createInputSystem } from './input/inputSystem.js';
 import { runGameLoop } from './core/gameLoop.js';
-import { cleanupRenderer } from './rendering/render.js';
-import { generateDungeon, startDungeon } from './world/dungeon.js';
-import { DEFAULT_DUNGEON_OPTIONS } from './types/Dungeon.js';
-import { createEmptyInventory, addRewardToInventory } from './items/rewards.js';
-import { renderDungeonNav, renderRewardInfo, renderMetaProgress } from './rendering/formatters.js';
-import { getAvailableRooms } from './world/navigation.js';
-import { loadMetaProgress, saveMetaProgress } from './progression/save.js';
-import { recordRunStart, recordClear, processUnlocks } from './progression/meta.js';
-import { loadUnlockDefinitions } from './progression/unlocks.js';
-import type { Dungeon } from './types/Dungeon.js';
-import type { PlayerInventory } from './types/Items.js';
-import type { MetaProgress } from './types/MetaProgress.js';
+import type { AppState } from './core/gameLoop.js';
+import { createInputSystem } from './input/inputSystem.js';
 import type { InputState } from './types/Input.js';
 import type { RandomGenerator } from './core/random.js';
+import type { CombatState } from './types/CombatState.js';
+import type { Treasure } from './types/Items.js';
+import { createGrid } from './combat/grid.js';
+import { createPlayer } from './combat/entity.js';
+import { createBoss, getAvailableBossIds } from './combat/bosses.js';
+import { initializeTimeline, accumulateTimeline, getNextActor } from './combat/timeline.js';
+import { executeAction } from './combat/combat.js';
+import { decideAction } from './combat/ai.js';
+import { renderCombat } from './rendering/formatters.js';
 
-// Phase 5 デモ用のゲーム状態
-interface DemoMetaState {
-  readonly dungeon: Dungeon | null;
-  readonly inventory: PlayerInventory;
-  readonly metaProgress: MetaProgress;
-  readonly running: boolean;
-  readonly clearScreen: boolean;
-  readonly selectedRoomIndex: number | null;
-  readonly currentFloorCount: number; // クリアしたフロア数
-  readonly showMetaProgress: boolean; // メタ進行を表示するか
+// プレイヤー用の初期トレジャー（ボスに対抗できる程度の装備）
+const PLAYER_STARTING_RELICS: readonly Treasure[] = [
+  {
+    id: 'hero_sword',
+    name: 'Hero Sword',
+    type: 'majorRelic',
+    rarity: 'rare',
+    description: 'A legendary sword for brave heroes',
+    effects: [
+      { type: 'bonusDamage', value: 15 },
+      { type: 'critical', value: 20 }
+    ]
+  },
+  {
+    id: 'hero_armor',
+    name: 'Hero Armor',
+    type: 'majorRelic',
+    rarity: 'rare',
+    description: 'Sturdy armor that protects the hero',
+    effects: [
+      { type: 'maxHpBoost', value: 50 },
+      { type: 'damageReduction', value: 3 }
+    ]
+  },
+  {
+    id: 'swift_boots',
+    name: 'Swift Boots',
+    type: 'majorRelic',
+    rarity: 'common',
+    description: 'Boots that enhance speed',
+    effects: [
+      { type: 'speedBoost', value: 20 }
+    ]
+  }
+];
+
+interface BossDemoState extends AppState {
+  readonly combat: CombatState;
+  readonly message: string;
+  readonly selectedBossIndex: number;
+  readonly bossSelectionMode: boolean;
 }
 
-// 初期状態
-const initialMeta = loadMetaProgress();
-const initialState: DemoMetaState = {
-  dungeon: null,
-  inventory: createEmptyInventory(),
-  metaProgress: initialMeta,
-  running: true,
-  clearScreen: true,
-  selectedRoomIndex: null,
-  currentFloorCount: 0,
-  showMetaProgress: true
-};
+function initBossCombat(bossId: string): CombatState {
+  const grid = createGrid(12, 8);
+  const basePlayer = createPlayer({ x: 2, y: 4 });
 
-// エントリーポイント
-main();
+  // プレイヤーにトレジャーを装備
+  const player = { ...basePlayer, equippedRelics: PLAYER_STARTING_RELICS };
 
-// メイン実行
-async function main(): Promise<void> {
-  let exitCode = 0;
-  const { getState, cleanup } = createInputSystem();
-
-  try {
-    const callbacks = { getInput: getState, update, render };
-    const finalState = await runGameLoop(initialState, callbacks);
-
-    // 終了時にメタ進行を保存
-    saveMetaProgress(finalState.metaProgress);
-    console.log('\nMeta progress saved. Thank you!');
-  } catch (error) {
-    exitCode = 1;
-    console.error('Error:', error);
-  } finally {
-    cleanup();
-    cleanupRenderer();
-  }
-
-  process.exit(exitCode);
+  const boss = createBoss(bossId, { x: 9, y: 4 });
+  return { grid, entities: [player, boss], timeline: initializeTimeline([player, boss]), currentTurn: null };
 }
 
-// ゲーム状態更新 (ピュア関数)
-function update(
-  state: DemoMetaState,
-  input: InputState,
-  _deltaTime: number,
-  rng: RandomGenerator
-): DemoMetaState {
-  // ダンジョンが未初期化なら初期化
-  if (!state.dungeon && !state.showMetaProgress) {
-    // プレイ開始を記録
-    const updatedMeta = recordRunStart(state.metaProgress);
-
-    const dungeon = startDungeon(
-      generateDungeon(DEFAULT_DUNGEON_OPTIONS),
-      state.inventory,
-      rng
-    );
-    return { ...state, dungeon, metaProgress: updatedMeta, clearScreen: true };
-  }
-
-  // clearScreen フラグをリセット
-  let newState = { ...state, clearScreen: false };
-
-  // 入力処理
-  for (const keyPress of input.queue) {
-    // 終了キー
-    if (keyPress.key.name === 'q' || (keyPress.key.ctrl && keyPress.key.name === 'c')) {
+function updateGame(state: BossDemoState, input: InputState, deltaTime: number, rng: RandomGenerator): BossDemoState {
+  // Q キー押下で即座に終了
+  if (input.queue.length > 0) {
+    const key = input.queue[0].key.name;
+    if (key === 'q') {
       return { ...state, running: false };
     }
+  }
 
-    // メタ進行表示中の場合
-    if (state.showMetaProgress) {
-      // Enterキーでゲーム開始
-      if (keyPress.key.name === 'return') {
-        return { ...newState, showMetaProgress: false, clearScreen: true };
-      }
-      continue;
+  if (input.queue.length === 0) {
+    if (!state.bossSelectionMode) {
+      const timeline = accumulateTimeline(state.combat.timeline, state.combat.entities, deltaTime);
+      const nextActor = getNextActor(timeline);
+      return { ...state, combat: { ...state.combat, timeline, currentTurn: nextActor } };
     }
+    return state;
+  }
 
-    // スペースキーで新しいダンジョンを生成（インベントリリセット）
-    if (keyPress.key.name === 'space') {
-      const inventory = createEmptyInventory();
-      const updatedMeta = recordRunStart(state.metaProgress);
-      const dungeon = startDungeon(
-        generateDungeon(DEFAULT_DUNGEON_OPTIONS),
-        inventory,
-        rng
-      );
-      return {
-        ...state,
-        dungeon,
-        inventory,
-        metaProgress: updatedMeta,
-        clearScreen: true,
-        selectedRoomIndex: null,
-        currentFloorCount: 0
-      };
+  const key = input.queue[0].key.name;
+  const bossIds = getAvailableBossIds();
+
+  if (state.bossSelectionMode) {
+    if (key === 'up') return { ...state, selectedBossIndex: Math.max(0, state.selectedBossIndex - 1) };
+    if (key === 'down') return { ...state, selectedBossIndex: Math.min(bossIds.length - 1, state.selectedBossIndex + 1) };
+    if (key === 'return') return { ...state, combat: initBossCombat(bossIds[state.selectedBossIndex]), bossSelectionMode: false, clearScreen: true, message: 'Fight!' };
+    return state;
+  }
+
+  let combat = state.combat;
+  let msg = state.message;
+
+  const hasPlayer = combat.entities.some(e => e.id === 'player');
+  const hasBoss = combat.entities.some(e => e.id !== 'player');
+
+  if (!hasPlayer || !hasBoss) {
+    msg = hasPlayer ? 'VICTORY! Press R to restart' : 'DEFEAT! Press R to restart';
+    if (key === 'r') return { ...state, bossSelectionMode: true, clearScreen: true };
+    return { ...state, message: msg };
+  }
+
+  const timeline = accumulateTimeline(combat.timeline, combat.entities, deltaTime);
+  const nextActor = getNextActor(timeline);
+  combat = { ...combat, timeline, currentTurn: nextActor };
+
+  if (nextActor === 'player') {
+    const player = combat.entities.find(e => e.id === 'player')!;
+    const boss = combat.entities.find(e => e.id !== 'player')!;
+    let action = null;
+
+    if (key === 'up') action = { type: 'move' as const, targetPos: { x: player.pos.x, y: player.pos.y - 1 }, apCost: 100 };
+    if (key === 'down') action = { type: 'move' as const, targetPos: { x: player.pos.x, y: player.pos.y + 1 }, apCost: 100 };
+    if (key === 'left') action = { type: 'move' as const, targetPos: { x: player.pos.x - 1, y: player.pos.y }, apCost: 100 };
+    if (key === 'right') action = { type: 'move' as const, targetPos: { x: player.pos.x + 1, y: player.pos.y }, apCost: 100 };
+    if (key === 'space') action = { type: 'attack' as const, targetPos: boss.pos, apCost: 100 };
+    if (key === 'z') action = { type: 'wait' as const, apCost: 100 };
+
+    if (action) {
+      combat = executeAction(combat, 'player', action, rng);
+      msg = 'Player acts';
     }
-
-    // 数字キーで部屋を選択（1-9）
-    if (keyPress.key.name && keyPress.key.name >= '1' && keyPress.key.name <= '9') {
-      const roomIndex = parseInt(keyPress.key.name) - 1;
-      if (state.dungeon) {
-        const availableRooms = getAvailableRooms(state.dungeon);
-
-        if (roomIndex < availableRooms.length) {
-          return { ...newState, selectedRoomIndex: roomIndex };
-        }
-      }
-    }
-
-    // Enterキーで報酬を獲得して次のフロアへ
-    if (keyPress.key.name === 'return' && state.selectedRoomIndex !== null && state.dungeon) {
-      const availableRooms = getAvailableRooms(state.dungeon);
-      const selectedRoom = availableRooms[state.selectedRoomIndex];
-
-      if (selectedRoom) {
-        // 報酬をインベントリに追加
-        const newInventory = addRewardToInventory(state.inventory, selectedRoom.reward);
-        const newFloorCount = state.currentFloorCount + 1;
-
-        // 最終フロアに到達したかチェック
-        if (newFloorCount >= DEFAULT_DUNGEON_OPTIONS.floorsCount) {
-          // クリア処理
-          let updatedMeta = recordClear(state.metaProgress, newFloorCount);
-
-          // アンロック処理
-          const unlockDefs = loadUnlockDefinitions();
-          updatedMeta = processUnlocks(updatedMeta, unlockDefs);
-
-          // メタ進行を保存
-          saveMetaProgress(updatedMeta);
-
-          return {
-            ...newState,
-            dungeon: null,
-            inventory: createEmptyInventory(),
-            metaProgress: updatedMeta,
-            clearScreen: true,
-            selectedRoomIndex: null,
-            currentFloorCount: 0,
-            showMetaProgress: true
-          };
-        } else {
-          // 新しいフロアを生成（更新されたインベントリを使用）
-          const newDungeon = startDungeon(
-            generateDungeon(DEFAULT_DUNGEON_OPTIONS),
-            newInventory,
-            rng
-          );
-
-          return {
-            ...newState,
-            dungeon: newDungeon,
-            inventory: newInventory,
-            clearScreen: true,
-            selectedRoomIndex: null,
-            currentFloorCount: newFloorCount
-          };
-        }
-      }
+  } else if (nextActor) {
+    const action = decideAction(combat, nextActor, rng);
+    if (action) {
+      combat = executeAction(combat, nextActor, action, rng);
+      msg = 'Boss acts';
     }
   }
 
-  return newState;
+  return { ...state, combat, message: msg };
 }
 
-// 描画用データ生成 (ピュア関数)
-function render(state: DemoMetaState): readonly string[] {
-  // メタ進行表示
-  if (state.showMetaProgress) {
-    const metaLines = renderMetaProgress(
-      state.metaProgress.stats,
-      state.metaProgress.unlockedTrophies.length,
-      state.metaProgress.unlockedTreasures.length
-    );
-
+function renderGame(state: BossDemoState): readonly string[] {
+  if (state.bossSelectionMode) {
+    const bossIds = getAvailableBossIds();
     return [
-      ...metaLines,
-      'Press ENTER to start a new run',
-      'Press Q to quit',
+      '=== Boss Battle Demo ===',
       '',
-      `Current Floor Progress: ${state.currentFloorCount} / ${DEFAULT_DUNGEON_OPTIONS.floorsCount}`
+      ...bossIds.map((id, i) => (i === state.selectedBossIndex ? '> ' : '  ') + id),
+      '',
+      'Up/Down: select, Enter: confirm, Q: quit'
     ];
   }
 
-  if (!state.dungeon || !state.dungeon.currentFloor) {
-    return ['Initializing dungeon...'];
-  }
+  const player = state.combat.entities.find(e => e.id === 'player');
+  const boss = state.combat.entities.find(e => e.id !== 'player');
+  const playerRelics = player?.equippedRelics || [];
+  const bossRelics = boss?.equippedRelics || [];
 
-  const availableRooms = getAvailableRooms(state.dungeon);
-
-  // ダンジョンナビゲーション画面
-  const navLines = renderDungeonNav(state.dungeon, availableRooms);
-
-  // 選択中の部屋の詳細報酬情報
-  const detailLines = state.selectedRoomIndex !== null && availableRooms[state.selectedRoomIndex]
-    ? [
-      '',
-      '--- Selected Room Details ---',
-      ...renderRewardInfo(availableRooms[state.selectedRoomIndex]),
-      '',
-      'Press ENTER to take this reward and advance to next floor'
-    ]
-    : [];
-
-  // フロア進行表示
-  const floorProgress = [
+  return [
+    ...renderCombat(state.combat),
     '',
-    `Floor Progress: ${state.currentFloorCount + 1} / ${DEFAULT_DUNGEON_OPTIONS.floorsCount}`
-  ];
-
-  // インベントリ表示
-  const inventoryLines = [
+    state.message,
     '',
-    '='.repeat(70),
-    'Current Inventory:',
-    '='.repeat(70)
+    'Player Equipment:',
+    ...playerRelics.map(r => `  ${r.name} [${r.rarity}]`),
+    '',
+    'Boss Equipment:',
+    ...bossRelics.map(r => `  ${r.name} [${r.rarity}]`),
+    '',
+    'Controls: Arrow keys to move, Space to attack, Z to wait, Q to quit'
   ];
-
-  if (state.inventory.treasures.length === 0) {
-    inventoryLines.push('  (empty)');
-  } else {
-    const treasureLines = state.inventory.treasures.flatMap((treasure, index) => {
-      const symbol = treasure.rarity === 'epic' ? '★' : treasure.rarity === 'rare' ? '◆' : '◇';
-      return [
-        `  ${index + 1}. ${symbol} ${treasure.name} [${treasure.rarity.toUpperCase()}]`,
-        `     ${treasure.description}`
-      ];
-    });
-    inventoryLines.push(...treasureLines);
-  }
-
-  inventoryLines.push('');
-  inventoryLines.push('Additional Controls: SPACE to restart with empty inventory');
-
-  return [...navLines, ...floorProgress, ...detailLines, ...inventoryLines];
 }
+
+async function main() {
+  const inputSystem = createInputSystem();
+  const bossIds = getAvailableBossIds();
+  const state: BossDemoState = {
+    running: true,
+    clearScreen: true,
+    combat: initBossCombat(bossIds[0]),
+    message: 'Select boss',
+    selectedBossIndex: 0,
+    bossSelectionMode: true
+  };
+
+  await runGameLoop(state, {
+    getInput: () => inputSystem.getState(),
+    update: updateGame,
+    render: renderGame,
+    cleanup: () => inputSystem.cleanup()
+  });
+
+  // ゲーム終了
+  console.log('\nGame ended.');
+  process.exit(0);
+}
+
+main().catch((err) => {
+  console.error(err);
+  process.exit(1);
+});

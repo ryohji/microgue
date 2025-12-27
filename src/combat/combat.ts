@@ -4,7 +4,7 @@ import type { CombatState, Action } from '../types/CombatState.js';
 import type { RandomGenerator } from '../core/random.js';
 import { createGrid } from './grid.js';
 import { initializeTimeline, accumulateTimeline, getNextActor, consumeActionPoints } from './timeline.js';
-import { createPlayer, createEnemy, moveEntity, damageEntity, updateEntity, removeDeadEntities, findEntityAt } from './entity.js';
+import { createPlayer, createEnemy, moveEntity, damageEntity, updateEntity, removeDeadEntities, findEntityAt, calculateLifesteal, healEntity } from './entity.js';
 
 // 戦闘を初期化
 export function initCombat(
@@ -53,7 +53,8 @@ export function updateCombat(
 export function executeAction(
   state: CombatState,
   entityId: string,
-  action: Action
+  action: Action,
+  rng: RandomGenerator = Math.random
 ): CombatState {
   let newEntities = state.entities;
   const actor = newEntities.find(e => e.id === entityId);
@@ -79,8 +80,21 @@ export function executeAction(
       if (action.targetPos) {
         const target = findEntityAt(newEntities, action.targetPos);
         if (target) {
-          const damaged = damageEntity(target, actor);
+          // ダメージ前のHP
+          const previousHp = target.hp;
+
+          // ダメージを与える
+          const damaged = damageEntity(target, actor, rng);
           newEntities = updateEntity(newEntities, damaged);
+
+          // ライフスティール処理
+          const actualDamage = previousHp - damaged.hp;
+          const lifestealAmount = calculateLifesteal(actor, actualDamage);
+
+          if (lifestealAmount > 0) {
+            const healed = healEntity(actor, lifestealAmount);
+            newEntities = updateEntity(newEntities, healed);
+          }
         }
       }
       break;

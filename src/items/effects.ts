@@ -1,6 +1,7 @@
 // 効果システム: アイテム効果の集計と適用
 
 import type { PlayerInventory, AggregatedEffects, EffectValue, EffectType } from '../types/Items.js';
+import type { Entity } from '../types/Entity.js';
 
 // Mutableな効果集計用の内部型
 type MutableAggregatedEffects = {
@@ -123,4 +124,20 @@ export function getEffectLevel(inventory: PlayerInventory, effectType: EffectTyp
   }
 
   return totalLevel;
+}
+
+// エンティティの装備レリックから効果を集計
+export function aggregateEntityEffects(entity: Entity): AggregatedEffects {
+  const effects: MutableAggregatedEffects = createEmptyEffects() as MutableAggregatedEffects;
+
+  // 装備レリックがある場合のみ集計
+  if (entity.equippedRelics) {
+    for (const relic of entity.equippedRelics) {
+      for (const effect of relic.effects) {
+        applyEffect(effects, effect);
+      }
+    }
+  }
+
+  return effects;
 }
