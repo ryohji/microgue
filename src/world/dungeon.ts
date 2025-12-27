@@ -2,41 +2,33 @@
 
 import type { Dungeon, Floor, DungeonGenerationOptions } from '../types/Dungeon.js';
 import type { RandomGenerator } from '../core/random.js';
+import type { PlayerInventory } from '../types/Items.js';
 import { generateRoomGraph } from './graph.js';
 
-// ダンジョンを生成
+// ダンジョンを生成（初期状態：フロアは未生成）
 export function generateDungeon(
-  options: DungeonGenerationOptions,
-  rng: RandomGenerator
+  options: DungeonGenerationOptions
 ): Dungeon {
-  const floors = generateFloors(options, rng);
-
   return {
-    floors,
-    currentFloor: 0,
-    currentRoomId: null
+    totalFloors: options.floorsCount,
+    currentFloorNumber: 0,
+    currentFloor: null,
+    currentRoomId: null,
+    options
   };
 }
 
-// 全フロアを生成
-function generateFloors(
-  options: DungeonGenerationOptions,
-  rng: RandomGenerator
-): readonly Floor[] {
-  return Array.from({ length: options.floorsCount }, (_, i) =>
-    generateFloor(i + 1, options, rng)
-  );
-}
-
-// 単一フロアを生成
-function generateFloor(
+// 単一フロアを生成（インベントリを考慮）
+export function generateFloor(
   floorNumber: number,
   _options: DungeonGenerationOptions,
+  inventory: PlayerInventory,
   rng: RandomGenerator
 ): Floor {
   const graph = generateRoomGraph(
     {
-      floorNumber
+      floorNumber,
+      inventory
     },
     rng
   );
@@ -50,17 +42,49 @@ function generateFloor(
   };
 }
 
-// ダンジョンを開始（スタート部屋を選択可能にする）
-export function startDungeon(dungeon: Dungeon): Dungeon {
-  if (dungeon.floors.length === 0) {
+// 次のフロアに進む（新しいフロアを生成）
+export function advanceToNextFloor(
+  dungeon: Dungeon,
+  inventory: PlayerInventory,
+  rng: RandomGenerator
+): Dungeon {
+  const nextFloorNumber = dungeon.currentFloorNumber + 1;
+
+  if (nextFloorNumber >= dungeon.totalFloors) {
+    // 最終フロアを超えた場合は変更なし
     return dungeon;
   }
 
-  const firstFloor = dungeon.floors[0];
+  const newFloor = generateFloor(
+    nextFloorNumber + 1, // フロア番号は1-indexed
+    dungeon.options,
+    inventory,
+    rng
+  );
+
+  return {
+    ...dungeon,
+    currentFloorNumber: nextFloorNumber,
+    currentFloor: newFloor,
+    currentRoomId: null
+  };
+}
+
+// ダンジョンを開始（最初のフロアを生成してスタート部屋を選択可能にする）
+export function startDungeon(
+  dungeon: Dungeon,
+  inventory: PlayerInventory,
+  rng: RandomGenerator
+): Dungeon {
+  // 最初のフロアを生成
+  const firstFloor = generateFloor(1, dungeon.options, inventory, rng);
   const startRoom = firstFloor.rooms.get(firstFloor.startRoomId);
 
   if (!startRoom) {
-    return dungeon;
+    return {
+      ...dungeon,
+      currentFloor: firstFloor
+    };
   }
 
   // スタート部屋を available に設定
@@ -72,13 +96,10 @@ export function startDungeon(dungeon: Dungeon): Dungeon {
     rooms: updatedRooms
   };
 
-  const updatedFloors = [...dungeon.floors];
-  updatedFloors[0] = updatedFloor;
-
   return {
     ...dungeon,
-    floors: updatedFloors,
-    currentFloor: 0,
+    currentFloorNumber: 0,
+    currentFloor: updatedFloor,
     currentRoomId: firstFloor.startRoomId
   };
 }

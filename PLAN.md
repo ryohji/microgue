@@ -223,63 +223,93 @@ npm start
 
 ---
 
-## Phase 4: アイテム・成長システム
+## Phase 4: アイテム・成長システム ✅
 
 ### 目的
 トロフィー・トレジャーとキャラクター成長を実装する。
 
+### 状態: 完了（報酬描画とデモを除く）
+
 ### 実装内容
 
 #### 4.1 型定義
-- [ ] `src/types/Items.ts`
-  - Trophy, Treasure
-  - PassiveEffect, SpecialEffect
-  - Equipment
+- [x] `src/types/Items.ts`
+  - EffectType, EffectValue
+  - Treasure, Trophy
+  - TreasureType, TreasureRarity
+  - Reward, PlayerInventory
+  - AggregatedEffects
 
-#### 4.2 トロフィーシステム
-- [ ] `src/items/trophy.ts`
-  - applyTrophyEffect(): 効果適用
-  - パッシブ効果の種類実装
-    - ステータスボーナス
-    - 速度倍率
-    - AP 軽減
+#### 4.2 効果システム
+- [x] `src/items/effects.ts`
+  - aggregateEffects(): インベントリから効果を集計
+  - hasEffect(): 特定効果タイプの保持チェック
+  - getEffectLevel(): 効果レベルの取得
+  - MutableAggregatedEffects 型定義（-readonly マッピング）
 
 #### 4.3 トレジャーシステム
-- [ ] `src/items/treasure.ts`
-  - equipTreasure(): 装備
-  - unequipTreasure(): 装備解除
-  - calculateEquipmentStats(): 装備込みステータス
+- [x] `src/items/treasure.ts`
+  - TREASURE_POOL: メジャーレリックと消耗品の定義（Common/Rare/Epic）
+  - MINOR_RELIC_TEMPLATES: マイナーレリックテンプレート
+  - generateTreasure(): トレジャー生成
+  - selectTreasureType(): タイプ選択（インベントリ考慮）
+  - generateMinorRelic(): マイナーレリック生成
 
 #### 4.4 報酬システム
-- [ ] `src/core/update.ts` に追加
-  - updateReward(): 報酬選択処理
-  - トロフィー選択
-  - トレジャー選択
+- [x] `src/items/rewards.ts`
+  - generateRoomReward(): 部屋の報酬生成
+  - addRewardToInventory(): インベントリへの追加
+  - createEmptyInventory(): 空インベントリ生成
 
-#### 4.5 マスターデータ
-- [ ] `data/trophies.json`: トロフィーマスターデータ
-- [ ] `data/treasures.json`: トレジャーマスターデータ
-- [ ] データ読み込み処理
+#### 4.5 部屋報酬統合
+- [x] `src/world/room.ts` 更新
+  - createRoomWithReward(): 報酬付き部屋生成
+  - Room 型に reward フィールド追加
 
-#### 4.6 報酬描画
+#### 4.6 遅延フロア生成
+- [x] `src/types/Dungeon.ts` 更新
+  - Dungeon 型を単一フロア保持に変更
+  - totalFloors, currentFloorNumber, options 追加
+- [x] `src/world/dungeon.ts` 更新
+  - generateDungeon(): 初期状態のみ生成
+  - generateFloor(): インベントリを考慮したフロア生成
+  - advanceToNextFloor(): 次フロア生成関数
+  - startDungeon(): 最初のフロア生成
+- [x] `src/world/navigation.ts` 更新
+  - currentFloor 対応に変更
+  - Iterator.prototype.filter().toArray() 使用
+- [x] `src/world/graph.ts` 更新
+  - inventory パラメータ追加
+
+#### 4.7 TypeScript 設定更新
+- [x] `tsconfig.json` 更新
+  - ES2023 サポート
+  - ESNext.Iterator 追加
+  - Iterator Helpers 使用可能
+
+#### 4.8 報酬描画
 - [ ] `src/rendering/formatters.ts` に追加
   - renderReward(): 報酬選択画面
   - アイテム情報の表示
 
-#### 4.7 動作確認デモ
-- [ ] 戦闘後にトロフィー選択
-- [ ] ボス撃破後にトレジャー選択
+#### 4.9 動作確認デモ
+- [ ] 報酬選択デモ
 - [ ] 効果が次の戦闘に反映される
 
 ### 成果物
-- トロフィー・トレジャーシステム
-- 報酬選択 UI
-- キャラクター成長の実感
+- トレジャーシステム（メジャー・マイナー・消耗品）
+- 効果集計システム
+- 遅延フロア生成（インベントリ考慮）
+- 報酬システム基盤
 
 ### 完了条件
-- アイテム取得が機能する
-- 効果が正しく適用される
-- プレイヤーが強化される実感がある
+- [x] アイテム型定義完了
+- [x] トレジャー生成機能完了
+- [x] 効果システム完了
+- [x] 部屋報酬統合完了
+- [x] 遅延フロア生成完了
+- [ ] 報酬描画実装
+- [ ] 動作確認デモ作成
 
 ---
 

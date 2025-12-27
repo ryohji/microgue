@@ -1,14 +1,17 @@
 // 部屋生成ロジック
 
 import type { Room, RoomType } from '../types/Dungeon.js';
+import type { Reward, PlayerInventory } from '../types/Items.js';
 import type { RandomGenerator } from '../core/random.js';
+import { generateRoomReward } from '../items/rewards.js';
 
 // 部屋を生成
 export function createRoom(
   id: string,
   type: RoomType,
   depth: number,
-  nextRooms: readonly string[] = []
+  nextRooms: readonly string[],
+  reward: Reward
 ): Room {
   return {
     id,
@@ -16,8 +19,22 @@ export function createRoom(
     status: 'locked',
     depth,
     nextRooms,
-    enemyCount: getEnemyCount(type)
+    enemyCount: getEnemyCount(type),
+    reward
   };
+}
+
+// 部屋と報酬を生成
+export function createRoomWithReward(
+  id: string,
+  type: RoomType,
+  depth: number,
+  nextRooms: readonly string[],
+  rng: RandomGenerator,
+  inventory: PlayerInventory
+): Room {
+  const reward = generateRoomReward(rng, inventory);
+  return createRoom(id, type, depth, nextRooms, reward);
 }
 
 // 部屋タイプに応じた敵の数を決定

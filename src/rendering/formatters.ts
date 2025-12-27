@@ -80,7 +80,12 @@ function renderGaugeBar(gauge: number): string {
 // ダンジョンナビゲーション画面を描画
 export function renderDungeonNav(dungeon: Dungeon, availableRooms: readonly Room[]): readonly string[] {
   const lines: string[] = [];
-  const floor = dungeon.floors[dungeon.currentFloor];
+
+  if (!dungeon.currentFloor) {
+    return ['No current floor'];
+  }
+
+  const floor = dungeon.currentFloor;
 
   lines.push('='.repeat(50));
   lines.push(`Floor ${floor.floorNumber} - Choose Your Path`);

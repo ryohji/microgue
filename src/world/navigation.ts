@@ -4,7 +4,11 @@ import type { Dungeon, Floor, Room } from '../types/Dungeon.js';
 
 // 部屋を選択（部屋に入る）
 export function selectRoom(dungeon: Dungeon, roomId: string): Dungeon {
-  const floor = dungeon.floors[dungeon.currentFloor];
+  if (!dungeon.currentFloor) {
+    return dungeon;
+  }
+
+  const floor = dungeon.currentFloor;
   const room = floor.rooms.get(roomId);
 
   if (!room || room.status !== 'available') {
@@ -20,23 +24,20 @@ export function selectRoom(dungeon: Dungeon, roomId: string): Dungeon {
     rooms: updatedRooms
   };
 
-  const updatedFloors = [...dungeon.floors];
-  updatedFloors[dungeon.currentFloor] = updatedFloor;
-
   return {
     ...dungeon,
-    floors: updatedFloors,
+    currentFloor: updatedFloor,
     currentRoomId: roomId
   };
 }
 
 // 部屋をクリア（次の部屋を選択可能にする）
 export function clearRoom(dungeon: Dungeon): Dungeon {
-  if (!dungeon.currentRoomId) {
+  if (!dungeon.currentRoomId || !dungeon.currentFloor) {
     return dungeon;
   }
 
-  const floor = dungeon.floors[dungeon.currentFloor];
+  const floor = dungeon.currentFloor;
   const currentRoom = floor.rooms.get(dungeon.currentRoomId);
 
   if (!currentRoom) {
@@ -60,71 +61,24 @@ export function clearRoom(dungeon: Dungeon): Dungeon {
     rooms: updatedRooms
   };
 
-  const updatedFloors = [...dungeon.floors];
-  updatedFloors[dungeon.currentFloor] = updatedFloor;
-
   return {
     ...dungeon,
-    floors: updatedFloors
-  };
-}
-
-// 次のフロアに進む（ボスをクリアした後）
-export function advanceToNextFloor(dungeon: Dungeon): Dungeon {
-  const nextFloorIndex = dungeon.currentFloor + 1;
-
-  if (nextFloorIndex >= dungeon.floors.length) {
-    // 最終フロアクリア
-    return dungeon;
-  }
-
-  const nextFloor = dungeon.floors[nextFloorIndex];
-  const startRoom = nextFloor.rooms.get(nextFloor.startRoomId);
-
-  if (!startRoom) {
-    return dungeon;
-  }
-
-  // 次のフロアのスタート部屋を available に設定
-  const updatedRooms = new Map(nextFloor.rooms);
-  updatedRooms.set(nextFloor.startRoomId, { ...startRoom, status: 'available' });
-
-  const updatedFloor: Floor = {
-    ...nextFloor,
-    rooms: updatedRooms
-  };
-
-  const updatedFloors = [...dungeon.floors];
-  updatedFloors[nextFloorIndex] = updatedFloor;
-
-  return {
-    ...dungeon,
-    floors: updatedFloors,
-    currentFloor: nextFloorIndex,
-    currentRoomId: nextFloor.startRoomId
+    currentFloor: updatedFloor
   };
 }
 
 // 選択可能な部屋のリストを取得
 export function getAvailableRooms(dungeon: Dungeon): readonly Room[] {
-  const floor = dungeon.floors[dungeon.currentFloor];
-  const available: Room[] = [];
-
-  for (const room of floor.rooms.values()) {
-    if (room.status === 'available') {
-      available.push(room);
-    }
-  }
-
-  return available;
+  return dungeon.currentFloor?.rooms.values()
+    .filter(({ status }) => status === 'available')
+    .toArray() ?? [];
 }
 
 // 現在の部屋を取得
 export function getCurrentRoom(dungeon: Dungeon): Room | null {
-  if (!dungeon.currentRoomId) {
+  if (dungeon.currentRoomId && dungeon.currentFloor) {
+    return dungeon.currentFloor.rooms.get(dungeon.currentRoomId) ?? null;
+  } else {
     return null;
   }
-
-  const floor = dungeon.floors[dungeon.currentFloor];
-  return floor.rooms.get(dungeon.currentRoomId) || null;
 }

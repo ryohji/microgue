@@ -3,7 +3,7 @@
 ## プロジェクト概要
 
 - **開始日**: 2025-12-21
-- **現在フェーズ**: Phase 4 (アイテム・成長) - 未着手
+- **現在フェーズ**: Phase 4 (アイテム・成長) - 完了（報酬描画とデモを除く）✅
 - **前フェーズ**: Phase 3 完了 ✅
 
 ---
@@ -15,12 +15,12 @@ Phase 0: 準備・設計         [███████████████�
 Phase 1: コアループ         [████████████████████] 100% ✅
 Phase 2: 基本戦闘           [████████████████████] 100% ✅
 Phase 3: ダンジョン         [████████████████████] 100% ✅
-Phase 4: アイテム・成長     [░░░░░░░░░░░░░░░░░░░░]   0%
+Phase 4: アイテム・成長     [██████████████████░░]  90% ✅ (報酬描画・デモ除く)
 Phase 5: メタ進行           [░░░░░░░░░░░░░░░░░░░░]   0%
 Phase 6: ボス・バランス     [░░░░░░░░░░░░░░░░░░░░]   0%
 Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░░░░░]   0%
 
-全体進捗: 50% (Phase 0, 1, 2, 3 完了)
+全体進捗: 63% (Phase 0, 1, 2, 3 完了、Phase 4 90%完了)
 ```
 
 ---
@@ -163,37 +163,78 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 
 ## Phase 4: アイテム・成長システム
 
-### 状態: 未着手
+### 状態: 完了（報酬描画とデモを除く）✅
 ### 目標: トロフィー・トレジャーとキャラクター成長
 
 #### タスク進捗
 
 ##### 4.1 型定義
-- [ ] `src/types/Items.ts`
+- [x] `src/types/Items.ts`
+  - EffectType, EffectValue
+  - Treasure, Trophy
+  - TreasureType, TreasureRarity
+  - Reward, PlayerInventory
+  - AggregatedEffects
 
-##### 4.2 トロフィーシステム
-- [ ] `src/items/trophy.ts`
+##### 4.2 効果システム
+- [x] `src/items/effects.ts`
+  - aggregateEffects(): インベントリから効果を集計
+  - hasEffect(): 特定効果タイプの保持チェック
+  - getEffectLevel(): 効果レベルの取得
+  - MutableAggregatedEffects 型定義（-readonly マッピング）
 
 ##### 4.3 トレジャーシステム
-- [ ] `src/items/treasure.ts`
+- [x] `src/items/treasure.ts`
+  - TREASURE_POOL: メジャーレリックと消耗品の定義
+  - MINOR_RELIC_TEMPLATES: マイナーレリックテンプレート
+  - generateTreasure(): トレジャー生成
+  - selectTreasureType(): タイプ選択（インベントリ考慮）
+  - generateMinorRelic(): マイナーレリック生成
 
 ##### 4.4 報酬システム
-- [ ] `src/core/update.ts` 拡張
+- [x] `src/items/rewards.ts`
+  - generateRoomReward(): 部屋の報酬生成
+  - addRewardToInventory(): インベントリへの追加
+  - createEmptyInventory(): 空インベントリ生成
 
-##### 4.5 マスターデータ
-- [ ] `data/trophies.json`
-- [ ] `data/treasures.json`
+##### 4.5 部屋報酬統合
+- [x] `src/world/room.ts` 更新
+  - createRoomWithReward(): 報酬付き部屋生成
+  - Room 型に reward フィールド追加
 
-##### 4.6 報酬描画
+##### 4.6 遅延フロア生成
+- [x] `src/types/Dungeon.ts` 更新
+  - Dungeon 型を単一フロア保持に変更
+- [x] `src/world/dungeon.ts` 更新
+  - generateDungeon(): 初期状態のみ生成
+  - generateFloor(): インベントリを考慮したフロア生成
+  - advanceToNextFloor(): 次フロア生成関数
+  - startDungeon(): 最初のフロア生成
+- [x] `src/world/navigation.ts` 更新
+  - currentFloor 対応に変更
+  - Iterator Helpers 使用
+- [x] `src/world/graph.ts` 更新
+  - inventory パラメータ追加
+
+##### 4.7 TypeScript 設定更新
+- [x] `tsconfig.json` 更新
+  - ES2023 サポート
+  - ESNext.Iterator 追加
+
+##### 4.8 報酬描画
 - [ ] `src/rendering/formatters.ts` 拡張
 
-##### 4.7 動作確認デモ
+##### 4.9 動作確認デモ
 - [ ] 報酬選択デモ
 
 #### 完了条件
-- [ ] アイテム取得が機能する
-- [ ] 効果が正しく適用される
-- [ ] プレイヤーが強化される実感
+- [x] アイテム型定義完了
+- [x] トレジャー生成機能完了
+- [x] 効果システム完了
+- [x] 部屋報酬統合完了
+- [x] 遅延フロア生成完了
+- [ ] 報酬描画実装
+- [ ] 動作確認デモ作成
 
 ---
 
@@ -343,6 +384,25 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
   - 特殊部屋配置 (Elite, Horde, Rest)
   - パラメータ整理 (不要なパラメータ削除)
 
+### 2025-12-28
+- **Phase 4 完了（報酬描画・デモ除く）** ✅:
+  - 型定義: Items.ts (EffectType, Treasure, Trophy, Reward, PlayerInventory, AggregatedEffects)
+  - 効果システム: effects.ts (aggregateEffects, hasEffect, getEffectLevel)
+    - MutableAggregatedEffects 型定義（-readonly マッピング）
+  - トレジャーシステム: treasure.ts
+    - TREASURE_POOL（Common/Rare/Epic メジャーレリック、消耗品）
+    - MINOR_RELIC_TEMPLATES（マイナーレリック）
+    - generateTreasure（インベントリ考慮の生成）
+  - 報酬システム: rewards.ts (generateRoomReward, addRewardToInventory, createEmptyInventory)
+  - 部屋報酬統合: room.ts に createRoomWithReward 追加
+  - 遅延フロア生成:
+    - Dungeon 型を単一フロア保持に変更（totalFloors, currentFloorNumber, currentFloor, options）
+    - generateDungeon（初期状態のみ）、generateFloor（インベントリ考慮）、advanceToNextFloor、startDungeon
+    - navigation.ts を currentFloor 対応に変更
+    - graph.ts に inventory パラメータ追加
+  - TypeScript 設定更新: ES2023, ESNext.Iterator 追加（Iterator Helpers 使用可能）
+  - 既存コードの API 更新（main.ts, formatters.ts, navigation.ts）
+
 ---
 
 ## メモ・課題
@@ -367,6 +427,35 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 - パス長分析の修正: BFSとDFSの重複実装を削除、DFSのみでエッジ数計算
 - 画面クリア管理: AppState に clearScreen フラグ追加、ダンジョン再生成時の画面クリア実装
 
+### Phase 4 で実装した主要機能
+- **アイテム型システム**:
+  - Treasure（メジャーレリック・マイナーレリック・消耗品）
+  - Trophy（メタプログレッション用、未実装）
+  - EffectValue（効果の値とレベル）
+  - AggregatedEffects（効果の集計結果）
+- **効果システム**:
+  - 15種類の効果タイプ（ステータス増強、攻撃強化、防御強化、デバフ）
+  - インベントリから効果を自動集計
+  - -readonly マッピングによる mutable 型生成
+- **トレジャー生成**:
+  - インベントリを考慮した生成ロジック
+  - マイナーレリックは既存効果がある場合のみ出現
+  - レアリティ（Common/Rare/Epic）
+- **遅延フロア生成**:
+  - 現在のフロアのみをメモリに保持
+  - インベントリを考慮してフロアを動的生成
+  - 後戻りがないため効率的
+- **Iterator Helpers**:
+  - ES2023 の Iterator.prototype.filter/toArray を活用
+  - Map.values().filter().toArray() パターン
+
+### Phase 4 で解決した技術課題
+- **readonly プロパティへの代入問題**: `-readonly` マッピングによる MutableAggregatedEffects 型定義
+- **遅延フロア生成の設計**: 全フロア保持から単一フロア保持へ変更、メモリ効率向上
+- **インベントリ依存の報酬生成**: フロア生成時にインベントリを渡すことで、マイナーレリックの出現条件を実現
+- **TypeScript Iterator Helpers**: ES2023 + ESNext.Iterator の設定で最新 API を使用可能に
+- **API 移行**: Dungeon 型変更に伴う既存コード（navigation.ts, formatters.ts, main.ts）の更新
+
 ### 今後の拡張案
 - Web UI への移植 (Vue.js/React)
 - マルチプレイヤー対応
@@ -377,9 +466,12 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 
 ## 次のアクション
 
-1. Phase 4 の実装準備
-2. アイテム型定義の作成
-3. トロフィー・トレジャーシステムの実装
+1. Phase 4 の残タスク完了
+   - 報酬描画の実装（formatters.ts 拡張）
+   - 動作確認デモの作成
+2. Phase 5 の準備
+   - メタプログレッションシステムの設計
+   - Trophy システムの実装
 
 ---
 

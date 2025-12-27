@@ -2,11 +2,13 @@
 
 import type { Room } from '../types/Dungeon.js';
 import type { RandomGenerator } from '../core/random.js';
-import { createRoom, addNextRooms } from './room.js';
+import type { PlayerInventory } from '../types/Items.js';
+import { createRoomWithReward, addNextRooms } from './room.js';
 
 // グラフ生成のパラメータ
 interface GraphGenerationParams {
   readonly floorNumber: number;    // フロア番号（ID生成用）
+  readonly inventory: PlayerInventory; // プレイヤーのインベントリ（報酬生成に使用）
 }
 
 // レベルごとの部屋構成
@@ -32,8 +34,8 @@ export function generateRoomGraph(
   // Step 1: レベルごとの部屋数と選択肢数を決定
   const levelLayouts = generateLevelLayouts(rng);
 
-  // Step 2: 部屋を作成し、レベルを割り当て
-  const { rooms, roomIds, startRoomId, bossRoomId } = createRoomsWithLevels(levelLayouts, params.floorNumber);
+  // Step 2: 部屋を作成し、レベルを割り当て（報酬も生成）
+  const { rooms, roomIds, startRoomId, bossRoomId } = createRoomsWithLevels(levelLayouts, params, rng);
 
   // Step 3: 接続関係を作成
   const connectedRooms = createConnectionsByLayout(rooms, levelLayouts, rng);
@@ -112,7 +114,8 @@ function generateLevelLayouts(rng: RandomGenerator): readonly LevelLayout[] {
 // レベルレイアウトに基づいて部屋を作成
 function createRoomsWithLevels(
   layouts: readonly LevelLayout[],
-  floorNumber: number
+  { floorNumber, inventory }: GraphGenerationParams,
+  rng: RandomGenerator
 ): {
   rooms: ReadonlyMap<string, Room>;
   roomIds: readonly string[];
@@ -122,11 +125,11 @@ function createRoomsWithLevels(
   const rooms = new Map<string, Room>();
   const roomIds: string[] = [];
 
-  // 各レベルの部屋を作成
+  // 各レベルの部屋を作成（報酬も生成）
   for (const layout of layouts) {
     for (let i = 0; i < layout.roomCount; i++) {
       const roomId = `f${floorNumber}_r${roomIds.length}`;
-      const room = createRoom(roomId, 'normal', layout.level, []);
+      const room = createRoomWithReward(roomId, 'normal', layout.level, [], rng, inventory);
       rooms.set(roomId, room);
       roomIds.push(roomId);
     }

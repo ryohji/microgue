@@ -51,11 +51,11 @@ function update(
   state: DemoGraphState,
   input: InputState,
   _deltaTime: number,
-  rng: RandomGenerator
+  _rng: RandomGenerator
 ): DemoGraphState {
   // ダンジョンが未初期化なら初期化
   if (!state.dungeon) {
-    const dungeon = generateDungeon(DEFAULT_DUNGEON_OPTIONS, rng);
+    const dungeon = generateDungeon(DEFAULT_DUNGEON_OPTIONS);
     return { ...state, dungeon, clearScreen: true };
   }
 
@@ -71,7 +71,7 @@ function update(
 
     // スペースキーで新しいダンジョンを生成
     if (keyPress.key.name === 'space') {
-      const dungeon = generateDungeon(DEFAULT_DUNGEON_OPTIONS, rng);
+      const dungeon = generateDungeon(DEFAULT_DUNGEON_OPTIONS);
       return { ...state, dungeon, clearScreen: true };
     }
   }
@@ -81,12 +81,12 @@ function update(
 
 // 描画用データ生成 (ピュア関数)
 function render(state: DemoGraphState): readonly string[] {
-  if (!state.dungeon) {
+  if (!state.dungeon || !state.dungeon.currentFloor) {
     return ['Initializing dungeon...'];
   }
 
   const lines: string[] = [];
-  const floor = state.dungeon.floors[state.dungeon.currentFloor];
+  const floor = state.dungeon.currentFloor;
 
   lines.push('='.repeat(70));
   lines.push(`Floor ${floor.floorNumber} - Dungeon Graph Visualization`);
