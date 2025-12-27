@@ -1,0 +1,87 @@
+[
+  {
+    "id": "goblin",
+    "name": "Goblin",
+    "symbol": "g",
+    "stats": {
+      "maxHp": 30,
+      "attack": 6,
+      "defense": 2,
+      "speed": 90
+    },
+    "aiType": "melee"
+  },
+  {
+    "id": "skeleton",
+    "name": "Skeleton",
+    "symbol": "s",
+    "stats": {
+      "maxHp": 35,
+      "attack": 7,
+      "defense": 3,
+      "speed": 85
+    },
+    "aiType": "melee"
+  },
+  {
+    "id": "orc",
+    "name": "Orc",
+    "symbol": "o",
+    "stats": {
+      "maxHp": 45,
+      "attack": 9,
+      "defense": 4,
+      "speed": 80
+    },
+    "aiType": "melee"
+  },
+  {
+    "id": "elite_warrior",
+    "name": "Elite Warrior",
+    "symbol": "W",
+    "stats": {
+      "maxHp": 80,
+      "attack": 15,
+      "defense": 7,
+      "speed": 95
+    },
+    "aiType": "melee",
+    "equippedRelics": [
+      {
+        "id": "warrior_blade",
+        "name": "Warrior's Blade",
+        "type": "majorRelic",
+        "rarity": "common",
+        "description": "A sharp blade for skilled warriors",
+        "effects": [
+          {"type": "bonusDamage", "value": 5}
+        ]
+      }
+    ]
+  },
+  {
+    "id": "elite_guardian",
+    "name": "Elite Guardian",
+    "symbol": "G",
+    "stats": {
+      "maxHp": 100,
+      "attack": 12,
+      "defense": 10,
+      "speed": 85
+    },
+    "aiType": "melee",
+    "equippedRelics": [
+      {
+        "id": "guardian_shield",
+        "name": "Guardian's Shield",
+        "type": "majorRelic",
+        "rarity": "common",
+        "description": "A sturdy shield for protection",
+        "effects": [
+          {"type": "damageReduction", "value": 2},
+          {"type": "maxHpBoost", "value": 20}
+        ]
+      }
+    ]
+  }
+]
