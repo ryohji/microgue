@@ -79,24 +79,22 @@ function renderGaugeBar(gauge: number): string {
 
 // ダンジョンナビゲーション画面を描画
 export function renderDungeonNav(dungeon: Dungeon, availableRooms: readonly Room[]): readonly string[] {
-  const lines: string[] = [];
-
   if (!dungeon.currentFloor) {
     return ['No current floor'];
   }
 
   const floor = dungeon.currentFloor;
 
-  lines.push('='.repeat(50));
-  lines.push(`Floor ${floor.floorNumber} - Choose Your Path`);
-  lines.push('='.repeat(50));
-  lines.push('');
+  const header = [
+    '='.repeat(70),
+    `Floor ${floor.floorNumber} - Choose Your Path`,
+    '='.repeat(70),
+    '',
+    'Available Rooms:',
+    ''
+  ];
 
-  // 選択可能な部屋をリスト表示
-  lines.push('Available Rooms:');
-  lines.push('');
-
-  availableRooms.forEach((room, index) => {
+  const roomLines = availableRooms.flatMap((room, index) => {
     const number = String(index + 1).padStart(2);
     const typeSymbol = getRoomTypeSymbol(room.type);
     const typeName = getRoomTypeName(room.type);
@@ -104,13 +102,21 @@ export function renderDungeonNav(dungeon: Dungeon, availableRooms: readonly Room
       ? ` (${room.enemyCount} enemies)`
       : '';
 
-    lines.push(`  [${number}] ${typeSymbol} ${typeName}${enemyInfo}`);
+    const treasure = room.reward.treasure;
+    const rewardLine = `    Reward: ${getRaritySymbol(treasure.rarity)} ${treasure.name}`;
+
+    return [
+      `  [${number}] ${typeSymbol} ${typeName}${enemyInfo}`,
+      rewardLine
+    ];
   });
 
-  lines.push('');
-  lines.push('Controls: 1-9 to select room, Q to quit');
+  const footer = [
+    '',
+    'Controls: 1-9 to select room, Q to quit'
+  ];
 
-  return lines;
+  return [...header, ...roomLines, ...footer];
 }
 
 // 部屋タイプのシンボル
@@ -132,5 +138,60 @@ function getRoomTypeName(type: Room['type']): string {
     case 'horde': return 'Horde Battle';
     case 'boss': return 'Boss Room';
     case 'rest': return 'Rest Site';
+  }
+}
+
+// 報酬情報の描画（部屋選択時に表示）
+export function renderRewardInfo(room: Room): readonly string[] {
+  const treasure = room.reward.treasure;
+
+  const header = [
+    '',
+    'Reward:',
+    `  ${getRaritySymbol(treasure.rarity)} ${treasure.name} [${treasure.rarity.toUpperCase()}]`,
+    `  ${treasure.description}`,
+    '  Effects:'
+  ];
+
+  if (treasure.effects.length === 0) {
+    return [...header, '    • none'];
+  } else {
+    const effectLines = treasure.effects.values()
+      .map(effect => `    • ${formatEffect(effect)}`)
+      .toArray();
+    return [...header, ...effectLines];
+  }
+}
+
+// レアリティのシンボル
+function getRaritySymbol(rarity: string): string {
+  switch (rarity) {
+    case 'common': return '◇';
+    case 'rare': return '◆';
+    case 'epic': return '★';
+    default: return '○';
+  }
+}
+
+// 効果のフォーマット
+function formatEffect(effect: { readonly type: string; readonly value: number; readonly level?: number }): string {
+  const levelStr = effect.level ? ` (Lv.${effect.level})` : '';
+  const valueStr = effect.value > 0 ? `+${effect.value}` : `${effect.value}`;
+
+  switch (effect.type) {
+    case 'maxHpBoost': return `Max HP ${valueStr}${levelStr}`;
+    case 'barrier': return `Barrier ${valueStr}${levelStr}`;
+    case 'speedBoost': return `Speed ${valueStr}${levelStr}`;
+    case 'evasionBoost': return `Evasion ${valueStr}%${levelStr}`;
+    case 'accuracyBoost': return `Accuracy ${valueStr}%${levelStr}`;
+    case 'bonusDamage': return `Bonus Damage ${valueStr}${levelStr}`;
+    case 'critical': return `Critical Chance ${valueStr}%${levelStr}`;
+    case 'areaAttack': return `Area Attack${levelStr}`;
+    case 'dotDamage': return `DoT Damage ${valueStr}${levelStr}`;
+    case 'lifesteal': return `Lifesteal ${valueStr}%${levelStr}`;
+    case 'damageReduction': return `Damage Reduction ${valueStr}${levelStr}`;
+    case 'attackDown': return `Enemy Attack -${valueStr}%${levelStr}`;
+    case 'speedDown': return `Enemy Speed -${valueStr}%${levelStr}`;
+    default: return `${effect.type}: ${valueStr}${levelStr}`;
   }
 }

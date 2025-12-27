@@ -3,7 +3,7 @@
 ## プロジェクト概要
 
 - **開始日**: 2025-12-21
-- **現在フェーズ**: Phase 4 (アイテム・成長) - 完了（報酬描画とデモを除く）✅
+- **現在フェーズ**: Phase 4 (アイテム・成長) - 完了 ✅
 - **前フェーズ**: Phase 3 完了 ✅
 
 ---
@@ -15,12 +15,12 @@ Phase 0: 準備・設計         [███████████████�
 Phase 1: コアループ         [████████████████████] 100% ✅
 Phase 2: 基本戦闘           [████████████████████] 100% ✅
 Phase 3: ダンジョン         [████████████████████] 100% ✅
-Phase 4: アイテム・成長     [██████████████████░░]  90% ✅ (報酬描画・デモ除く)
+Phase 4: アイテム・成長     [████████████████████] 100% ✅
 Phase 5: メタ進行           [░░░░░░░░░░░░░░░░░░░░]   0%
 Phase 6: ボス・バランス     [░░░░░░░░░░░░░░░░░░░░]   0%
 Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░░░░░]   0%
 
-全体進捗: 63% (Phase 0, 1, 2, 3 完了、Phase 4 90%完了)
+全体進捗: 67% (Phase 0, 1, 2, 3, 4 完了)
 ```
 
 ---
@@ -163,7 +163,7 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 
 ## Phase 4: アイテム・成長システム
 
-### 状態: 完了（報酬描画とデモを除く）✅
+### 状態: 完了 ✅
 ### 目標: トロフィー・トレジャーとキャラクター成長
 
 #### タスク進捗
@@ -222,10 +222,15 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
   - ESNext.Iterator 追加
 
 ##### 4.8 報酬描画
-- [ ] `src/rendering/formatters.ts` 拡張
+- [x] `src/rendering/formatters.ts` 拡張
+  - renderRewardInfo(): 報酬詳細表示
+  - renderDungeonNav(): 報酬情報統合
+  - getRaritySymbol(), formatEffect()
 
 ##### 4.9 動作確認デモ
-- [ ] 報酬選択デモ
+- [x] 報酬選択デモ (main.ts)
+  - 部屋選択とインベントリ管理
+  - インベントリ考慮のフロア生成確認
 
 #### 完了条件
 - [x] アイテム型定義完了
@@ -233,8 +238,8 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 - [x] 効果システム完了
 - [x] 部屋報酬統合完了
 - [x] 遅延フロア生成完了
-- [ ] 報酬描画実装
-- [ ] 動作確認デモ作成
+- [x] 報酬描画実装
+- [x] 動作確認デモ作成
 
 ---
 
@@ -385,7 +390,7 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
   - パラメータ整理 (不要なパラメータ削除)
 
 ### 2025-12-28
-- **Phase 4 完了（報酬描画・デモ除く）** ✅:
+- **Phase 4 完了** ✅:
   - 型定義: Items.ts (EffectType, Treasure, Trophy, Reward, PlayerInventory, AggregatedEffects)
   - 効果システム: effects.ts (aggregateEffects, hasEffect, getEffectLevel)
     - MutableAggregatedEffects 型定義（-readonly マッピング）
@@ -401,6 +406,15 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
     - navigation.ts を currentFloor 対応に変更
     - graph.ts に inventory パラメータ追加
   - TypeScript 設定更新: ES2023, ESNext.Iterator 追加（Iterator Helpers 使用可能）
+  - 報酬描画: formatters.ts
+    - renderRewardInfo（報酬詳細表示）
+    - renderDungeonNav 更新（報酬情報統合）
+    - getRaritySymbol, formatEffect
+  - 動作確認デモ: main.ts（Phase 4 報酬システムデモ）
+    - 部屋選択（1-9キー）、報酬詳細表示
+    - 報酬獲得とインベントリ管理（Enterキー）
+    - インベントリ考慮のフロア生成確認
+    - リセット機能（Spaceキー）
   - 既存コードの API 更新（main.ts, formatters.ts, navigation.ts）
 
 ---
@@ -466,12 +480,13 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 
 ## 次のアクション
 
-1. Phase 4 の残タスク完了
-   - 報酬描画の実装（formatters.ts 拡張）
-   - 動作確認デモの作成
-2. Phase 5 の準備
-   - メタプログレッションシステムの設計
-   - Trophy システムの実装
+1. Phase 5 (メタプログレッション) の実装
+   - Trophy システムの型定義と実装
+   - アンロックシステムの設計
+   - セーブ/ロード機能の実装
+2. Phase 6 の準備
+   - ボス戦の設計
+   - バランス調整の方針決定
 
 ---
 
