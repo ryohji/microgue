@@ -195,3 +195,27 @@ function formatEffect(effect: { readonly type: string; readonly value: number; r
     default: return `${effect.type}: ${valueStr}${levelStr}`;
   }
 }
+
+// メタ進行データの描画
+export function renderMetaProgress(
+  stats: { totalRuns: number; totalClears: number; maxFloorReached: number },
+  unlockedTrophiesCount: number,
+  unlockedTreasuresCount: number
+): readonly string[] {
+  return [
+    '',
+    '='.repeat(70),
+    'Meta Progress',
+    '='.repeat(70),
+    '',
+    'Game Statistics:',
+    `  Total Runs: ${stats.totalRuns}`,
+    `  Total Clears: ${stats.totalClears}`,
+    `  Max Floor Reached: ${stats.maxFloorReached}`,
+    '',
+    'Unlocked Items:',
+    `  Trophies: ${unlockedTrophiesCount}`,
+    `  Treasures: ${unlockedTreasuresCount}`,
+    ''
+  ];
+}

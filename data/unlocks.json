@@ -1,0 +1,58 @@
+[
+  {
+    "itemId": "hp_ring",
+    "itemType": "treasure",
+    "condition": {
+      "type": "always"
+    },
+    "displayName": "体力の指輪",
+    "description": "初期から使用可能なトレジャー"
+  },
+  {
+    "itemId": "speed_ring",
+    "itemType": "treasure",
+    "condition": {
+      "type": "always"
+    },
+    "displayName": "俊敏の指輪",
+    "description": "初期から使用可能なトレジャー"
+  },
+  {
+    "itemId": "iron_sword",
+    "itemType": "treasure",
+    "condition": {
+      "type": "always"
+    },
+    "displayName": "鉄の剣",
+    "description": "初期から使用可能なトレジャー"
+  },
+  {
+    "itemId": "first_victory",
+    "itemType": "trophy",
+    "condition": {
+      "type": "firstClear"
+    },
+    "displayName": "初勝利",
+    "description": "初めてダンジョンをクリアした証"
+  },
+  {
+    "itemId": "veteran",
+    "itemType": "trophy",
+    "condition": {
+      "type": "clearCount",
+      "value": 5
+    },
+    "displayName": "ベテラン",
+    "description": "5回クリアした証"
+  },
+  {
+    "itemId": "master",
+    "itemType": "trophy",
+    "condition": {
+      "type": "clearCount",
+      "value": 10
+    },
+    "displayName": "マスター",
+    "description": "10回クリアした証"
+  }
+]

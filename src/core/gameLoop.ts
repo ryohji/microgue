@@ -29,7 +29,7 @@ export async function runGameLoop<T extends AppState>(
   initialState: T,
   callbacks: GameLoopCallbacks<T>,
   options: GameLoopOptions = {}
-): Promise<void> {
+): Promise<T> {
   const targetFPS = options.targetFPS ?? 60;
   const rng = options.rng ?? Math.random;
   const targetFrameTime = 1000 / targetFPS;
@@ -62,4 +62,7 @@ export async function runGameLoop<T extends AppState>(
 
   // クリーンアップ
   callbacks.cleanup?.();
+
+  // 最終状態を返す
+  return state;
 }

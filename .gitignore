@@ -24,4 +24,4 @@ npm-debug.log*
 .env.local
 
 # Save data (optional - comment out if you want to track meta progress)
-# saves/*.json
+saves/*.json

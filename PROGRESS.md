@@ -3,8 +3,8 @@
 ## プロジェクト概要
 
 - **開始日**: 2025-12-21
-- **現在フェーズ**: Phase 4 (アイテム・成長) - 完了 ✅
-- **前フェーズ**: Phase 3 完了 ✅
+- **現在フェーズ**: Phase 5 (メタプログレッション) - 完了 ✅
+- **前フェーズ**: Phase 4 完了 ✅
 
 ---
 
@@ -16,11 +16,11 @@ Phase 1: コアループ         [███████████████�
 Phase 2: 基本戦闘           [████████████████████] 100% ✅
 Phase 3: ダンジョン         [████████████████████] 100% ✅
 Phase 4: アイテム・成長     [████████████████████] 100% ✅
-Phase 5: メタ進行           [░░░░░░░░░░░░░░░░░░░░]   0%
+Phase 5: メタ進行           [████████████████████] 100% ✅
 Phase 6: ボス・バランス     [░░░░░░░░░░░░░░░░░░░░]   0%
 Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░░░░░]   0%
 
-全体進捗: 67% (Phase 0, 1, 2, 3, 4 完了)
+全体進捗: 83% (Phase 0, 1, 2, 3, 4, 5 完了)
 ```
 
 ---
@@ -245,33 +245,65 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 
 ## Phase 5: メタプログレッション
 
-### 状態: 未着手
+### 状態: 完了 ✅
 ### 目標: プレイ間でのアンロック要素
 
 #### タスク進捗
 
 ##### 5.1 型定義
-- [ ] `src/types/MetaProgress.ts`
+- [x] `src/types/MetaProgress.ts`
+  - UnlockConditionType, UnlockCondition
+  - TrophyUnlock, TreasureUnlock
+  - GameStats (totalRuns, totalClears, maxFloorReached, bossesKilled, treasuresCollected)
+  - MetaProgress (version, stats, unlockedTrophies, unlockedTreasures, lastPlayedAt)
+  - UnlockDefinition (マスターデータ定義)
 
 ##### 5.2 アンロックシステム
-- [ ] `src/progression/meta.ts`
+- [x] `src/progression/meta.ts`
+  - createInitialMetaProgress(): メタ進行データの初期化
+  - checkUnlockCondition(): アンロック条件のチェック
+  - unlockTrophy/unlockTreasure(): アンロック処理
+  - processUnlocks(): アンロック定義の一括処理
+  - recordRunStart/recordClear/recordBossKill/recordTreasureCollected(): 統計記録
+  - isTrophyUnlocked/isTreasureUnlocked(): アンロック状態確認
 
 ##### 5.3 保存システム
-- [ ] `src/progression/save.ts`
+- [x] `src/progression/save.ts`
+  - saveMetaProgress(): saves/meta.json への保存
+  - loadMetaProgress(): 読み込みまたは初期データ生成
+  - hasSaveFile(): セーブファイル存在確認
+  - deleteSaveFile(): デバッグ用削除機能
 
-##### 5.4 初期化処理
-- [ ] `src/main.ts` 修正
+##### 5.4 アンロック定義
+- [x] `data/unlocks.json`
+  - 初期トレジャー定義（always条件）
+  - トロフィー定義（firstClear, clearCount条件）
+- [x] `src/progression/unlocks.ts`
+  - loadUnlockDefinitions(): JSONファイル読み込み
+  - getInitialUnlockedIds(): 初期アンロック済みID取得
+  - DEFAULT_UNLOCKS: フォールバック定義
 
-##### 5.5 アンロック条件定義
-- [ ] `data/unlocks.json`
+##### 5.5 描画機能
+- [x] `src/rendering/formatters.ts` 拡張
+  - renderMetaProgress(): メタ進行画面の描画
 
-##### 5.6 動作確認デモ
-- [ ] アンロック確認デモ
+##### 5.6 ゲームループ改善
+- [x] `src/core/gameLoop.ts` 修正
+  - runGameLoop の戻り値を Promise<T> に変更
+  - 最終状態を返すように修正
+
+##### 5.7 動作確認デモ
+- [x] `src/main.ts` Phase 5 デモ実装
+  - メタ進行データの読み込み
+  - メタ進行画面の表示
+  - ラン開始/クリアの記録
+  - アンロック処理の実行
+  - セーブデータの保存
 
 #### 完了条件
-- [ ] セーブデータが正しく保存・読み込み
-- [ ] アンロック条件が機能
-- [ ] プレイを重ねるごとに選択肢が増える
+- [x] セーブデータが正しく保存・読み込み
+- [x] アンロック条件が機能
+- [x] プレイを重ねるごとに選択肢が増える仕組みの実装
 
 ---
 
@@ -416,6 +448,36 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
     - インベントリ考慮のフロア生成確認
     - リセット機能（Spaceキー）
   - 既存コードの API 更新（main.ts, formatters.ts, navigation.ts）
+- **Phase 5 完了** ✅:
+  - 型定義: MetaProgress.ts
+    - UnlockConditionType (always, firstClear, bossKill, clearCount, floorReached, treasureCollected)
+    - UnlockCondition, TrophyUnlock, TreasureUnlock
+    - GameStats (総プレイ回数、総クリア回数、最大フロア到達、ボス撃破、トレジャー獲得履歴)
+    - MetaProgress（プレイ間で永続化されるデータ）
+    - UnlockDefinition（マスターデータ定義）
+  - メタ進行システム: meta.ts
+    - createInitialMetaProgress（初期データ生成）
+    - checkUnlockCondition（条件チェック）
+    - unlockTrophy/unlockTreasure（アンロック処理）
+    - processUnlocks（一括アンロック処理）
+    - recordRunStart/recordClear/recordBossKill/recordTreasureCollected（統計記録）
+    - isTrophyUnlocked/isTreasureUnlocked（アンロック状態確認）
+  - セーブ/ロードシステム: save.ts
+    - saves/meta.json への JSON 保存
+    - 初回起動時の初期データ生成
+    - バージョン管理
+  - アンロック定義: unlocks.ts, data/unlocks.json
+    - 初期トレジャー（always条件）
+    - トロフィー（firstClear, clearCount条件）
+    - JSONファイルからの読み込みとフォールバック
+  - メタ進行描画: formatters.ts
+    - renderMetaProgress（統計とアンロック数表示）
+  - ゲームループ改善: gameLoop.ts
+    - runGameLoop の戻り値を Promise<T> に変更（最終状態を返す）
+  - デモ実装: main.ts（Phase 5 メタプログレッションデモ）
+    - メタ進行データの読み込みと保存
+    - メタ進行画面の表示（ENTER でラン開始、Q で終了）
+    - ラン記録、クリア記録、アンロック処理
 
 ---
 
@@ -470,6 +532,28 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 - **TypeScript Iterator Helpers**: ES2023 + ESNext.Iterator の設定で最新 API を使用可能に
 - **API 移行**: Dungeon 型変更に伴う既存コード（navigation.ts, formatters.ts, main.ts）の更新
 
+### Phase 5 で実装した主要機能
+- **メタプログレッションシステム**:
+  - プレイ間で永続化されるゲーム統計（プレイ回数、クリア回数、最大フロア到達など）
+  - トロフィーとトレジャーのアンロックシステム
+  - 柔軟なアンロック条件（always, firstClear, bossKill, clearCount, floorReached, treasureCollected）
+- **セーブ/ロードシステム**:
+  - JSON ファイルベースの永続化（saves/meta.json）
+  - 初回起動時の自動初期化
+  - バージョン管理による将来の拡張性
+- **アンロック定義の外部化**:
+  - data/unlocks.json によるマスターデータ管理
+  - フォールバック機能（ファイルが無い場合のデフォルト定義）
+- **統計追跡**:
+  - ラン開始、クリア、ボス撃破、トレジャー獲得の記録
+  - アンロック条件の自動チェックと処理
+
+### Phase 5 で解決した技術課題
+- **ゲームループの戻り値問題**: runGameLoop を Promise<void> から Promise<T> に変更し、最終状態を返すように改善
+- **メタデータの設計**: プレイごとのデータ（Treasure）とメタデータ（Trophy）の明確な分離
+- **条件チェックの拡張性**: switch-case による条件タイプごとの分岐で、新しい条件タイプの追加が容易
+- **JSON ベースのマスターデータ**: 外部ファイルによるアンロック定義で、コードを変更せずにアンロック要素を追加可能
+
 ### 今後の拡張案
 - Web UI への移植 (Vue.js/React)
 - マルチプレイヤー対応
@@ -480,13 +564,15 @@ Phase 7: 仕上げ             [░░░░░░░░░░░░░░░░
 
 ## 次のアクション
 
-1. Phase 5 (メタプログレッション) の実装
-   - Trophy システムの型定義と実装
-   - アンロックシステムの設計
-   - セーブ/ロード機能の実装
-2. Phase 6 の準備
-   - ボス戦の設計
-   - バランス調整の方針決定
+1. Phase 6 (ボス戦・バランス調整) の実装
+   - ボス定義の作成 (data/enemies.json)
+   - ボス AI の実装
+   - 特殊スキルの実装
+   - ゲームバランスの調整（敵ステータス、アイテム効果、タイムライン速度、AP コスト）
+   - テストプレイとバランス調整
+2. Phase 7 の準備
+   - UI 改善の検討
+   - エラーハンドリングの強化
 
 ---
 

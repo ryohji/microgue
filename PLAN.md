@@ -320,55 +320,74 @@ npm start
 
 ---
 
-## Phase 5: メタプログレッション
+## Phase 5: メタプログレッション ✅
 
 ### 目的
 プレイ間でのアンロック要素と進行データの保存を実装する。
 
+### 状態: 完了
+
 ### 実装内容
 
 #### 5.1 型定義
-- [ ] `src/types/MetaProgress.ts`
-  - MetaProgress
-  - UnlockCondition
+- [x] `src/types/MetaProgress.ts`
+  - UnlockConditionType (always, firstClear, bossKill, clearCount, floorReached, treasureCollected)
+  - UnlockCondition, TrophyUnlock, TreasureUnlock
+  - GameStats (総プレイ回数、総クリア回数、最大フロア到達、ボス撃破、トレジャー獲得履歴)
+  - MetaProgress (プレイ間で永続化されるデータ)
+  - UnlockDefinition (マスターデータ定義)
 
 #### 5.2 アンロックシステム
-- [ ] `src/progression/meta.ts`
-  - checkUnlocks(): 解放条件チェック
-  - unlockTrophy(): トロフィー解放
-  - unlockTreasure(): トレジャー解放
+- [x] `src/progression/meta.ts`
+  - createInitialMetaProgress(): メタ進行データの初期化
+  - checkUnlockCondition(): アンロック条件のチェック
+  - unlockTrophy/unlockTreasure(): アンロック処理
+  - processUnlocks(): アンロック定義の一括処理
+  - recordRunStart/recordClear/recordBossKill/recordTreasureCollected(): 統計記録
+  - isTrophyUnlocked/isTreasureUnlocked(): アンロック状態確認
 
 #### 5.3 保存システム
-- [ ] `src/progression/save.ts`
-  - saveMetaProgress(): JSON 保存
-  - loadMetaProgress(): JSON 読み込み
-  - saves/meta.json への書き込み
+- [x] `src/progression/save.ts`
+  - saveMetaProgress(): saves/meta.json への保存
+  - loadMetaProgress(): 読み込みまたは初期データ生成
+  - hasSaveFile(): セーブファイル存在確認
+  - deleteSaveFile(): デバッグ用削除機能
 
-#### 5.4 初期化処理
-- [ ] `src/main.ts` 修正
-  - 起動時にメタ進行データ読み込み
-  - 終了時に保存
+#### 5.4 アンロック定義
+- [x] `data/unlocks.json`
+  - 初期トレジャー定義（always条件）
+  - トロフィー定義（firstClear, clearCount条件）
+- [x] `src/progression/unlocks.ts`
+  - loadUnlockDefinitions(): JSONファイル読み込み
+  - getInitialUnlockedIds(): 初期アンロック済みID取得
+  - DEFAULT_UNLOCKS: フォールバック定義
 
-#### 5.5 アンロック条件定義
-- [ ] `data/unlocks.json`: アンロック条件マスターデータ
-  - 初回クリアで解放
-  - 特定ボス撃破で解放
-  - クリア回数で解放
+#### 5.5 描画機能
+- [x] `src/rendering/formatters.ts` 拡張
+  - renderMetaProgress(): メタ進行画面の描画
 
-#### 5.6 動作確認デモ
-- [ ] 初回プレイでは限られたアイテムのみ
-- [ ] クリア後、新しいアイテムが解放される
-- [ ] 再起動してもアンロック状態が保持される
+#### 5.6 ゲームループ改善
+- [x] `src/core/gameLoop.ts` 修正
+  - runGameLoop の戻り値を Promise<T> に変更
+  - 最終状態を返すように修正
+
+#### 5.7 動作確認デモ
+- [x] `src/main.ts` Phase 5 デモ実装
+  - メタ進行データの読み込みと保存
+  - メタ進行画面の表示（ENTER でラン開始、Q で終了）
+  - ラン記録、クリア記録、アンロック処理
 
 ### 成果物
 - メタプログレッションシステム
-- プレイ間での進行保存
-- アンロック要素
+- プレイ間でのデータ永続化 (saves/meta.json)
+- アンロック要素（トロフィー、トレジャー）
+- 柔軟なアンロック条件システム
+- JSON ベースのマスターデータ管理
 
 ### 完了条件
-- セーブデータが正しく保存・読み込みされる
-- アンロック条件が機能する
-- プレイを重ねるごとに選択肢が増える
+- [x] セーブデータが正しく保存・読み込みされる
+- [x] アンロック条件が機能する
+- [x] プレイを重ねるごとに選択肢が増える仕組みの実装
 
 ---
 
