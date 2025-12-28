@@ -87,7 +87,7 @@ export function renderDungeonNav(dungeon: Dungeon, availableRooms: readonly Room
 
   const header = [
     '='.repeat(70),
-    `Floor ${floor.floorNumber} - Choose Your Path`,
+    `Floor ${floor.floorNumber + 1} - Choose Your Path`,
     '='.repeat(70),
     '',
     'Available Rooms:',

@@ -49,13 +49,14 @@ function startExplore(
   rng: RandomGenerator
 ): Dungeon {
   const nextFloorNumber = dungeon.currentFloorNumber + 1;
+  // generateFloor は内部で 0-indexed のフロア番号を使用
   const newFloor = generateFloor(nextFloorNumber, dungeon.options, inventory, rng);
   const startRoom = newFloor.rooms.get(newFloor.startRoomId);
 
   if (!startRoom) {
     return {
       ...dungeon,
-      currentFloorNumber: nextFloorNumber - 1,
+      currentFloorNumber: nextFloorNumber,
       currentFloor: newFloor,
       currentRoomId: newFloor.startRoomId
     };
@@ -71,7 +72,7 @@ function startExplore(
 
   return {
     ...dungeon,
-    currentFloorNumber: nextFloorNumber - 1,
+    currentFloorNumber: nextFloorNumber,
     currentFloor: initializedFloor,
     currentRoomId: initializedFloor.startRoomId
   };
@@ -97,5 +98,7 @@ export function startDungeon(
   inventory: PlayerInventory,
   rng: RandomGenerator
 ): Dungeon {
-  return startExplore(dungeon, inventory, rng);
+  // currentFloorNumber を -1 にしてから startExplore を呼ぶことで、フロア 0 を生成
+  const dungeonAtMinusOne = { ...dungeon, currentFloorNumber: -1 };
+  return startExplore(dungeonAtMinusOne, inventory, rng);
 }

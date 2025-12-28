@@ -116,7 +116,7 @@ function updateNavigation(
       };
     } else {
       // 戦闘部屋: 戦闘開始
-      const bossId = selectedRoom.type === 'boss' ? `boss_floor_${state.dungeon.currentFloorNumber}` : null;
+      const bossId = selectedRoom.type === 'boss' ? `boss_floor_${state.dungeon.currentFloorNumber + 1}` : null;
       const combat = createEncounterForRoom(
         selectedRoom.type,
         state.inventory,
@@ -196,21 +196,28 @@ function updateRoom(
         combat: newCombat,
         message: 'Player acts'
       };
+    } else {
+      return state;
     }
-  } else if (state.combat.currentTurn) {
-    // 敵のターン
-    const action = decideAction(state.combat, state.combat.currentTurn, rng);
-    if (action) {
-      const newCombat = executeAction(state.combat, state.combat.currentTurn, action, rng);
-      return {
-        ...state,
-        combat: newCombat,
-        message: `${state.combat.currentTurn} acts`
-      };
+  } else {
+    if (state.combat.currentTurn) {
+      // 敵のターン: 入力を無視して敵の行動を実行
+      const action = decideAction(state.combat, state.combat.currentTurn, rng);
+      if (action) {
+        const newCombat = executeAction(state.combat, state.combat.currentTurn, action, rng);
+        return {
+          ...state,
+          combat: newCombat,
+          message: `${state.combat.currentTurn} acts`
+        };
+      } else {
+        return state;
+      }
+    } else {
+      // ターンがない場合は状態を維持
+      return state;
     }
   }
-
-  return state;
 }
 
 // プレイヤーの行動を取得
@@ -219,7 +226,15 @@ function getPlayerAction(key: string | undefined, combat: CombatState) {
   if (!player) return null;
 
   const enemies = combat.entities.filter(e => e.id !== 'player');
-  const nearestEnemy = enemies.length > 0 ? enemies[0] : null;
+
+  // 最も近い敵を選択（マンハッタン距離）
+  const nearestEnemy = enemies.length > 0
+    ? enemies.reduce((nearest, enemy) => {
+        const distToEnemy = Math.abs(enemy.pos.x - player.pos.x) + Math.abs(enemy.pos.y - player.pos.y);
+        const distToNearest = Math.abs(nearest.pos.x - player.pos.x) + Math.abs(nearest.pos.y - player.pos.y);
+        return distToEnemy < distToNearest ? enemy : nearest;
+      })
+    : null;
 
   switch (key) {
     case 'up':
