@@ -42,32 +42,53 @@ export function generateFloor(
   };
 }
 
+// 次のフロアの探索を開始（フロアを生成し、スタート部屋をavailableに設定）
+function startExplore(
+  dungeon: Dungeon,
+  inventory: PlayerInventory,
+  rng: RandomGenerator
+): Dungeon {
+  const nextFloorNumber = dungeon.currentFloorNumber + 1;
+  const newFloor = generateFloor(nextFloorNumber, dungeon.options, inventory, rng);
+  const startRoom = newFloor.rooms.get(newFloor.startRoomId);
+
+  if (!startRoom) {
+    return {
+      ...dungeon,
+      currentFloorNumber: nextFloorNumber - 1,
+      currentFloor: newFloor,
+      currentRoomId: newFloor.startRoomId
+    };
+  }
+
+  const updatedRooms = new Map(newFloor.rooms);
+  updatedRooms.set(newFloor.startRoomId, { ...startRoom, status: 'available' });
+
+  const initializedFloor: Floor = {
+    ...newFloor,
+    rooms: updatedRooms
+  };
+
+  return {
+    ...dungeon,
+    currentFloorNumber: nextFloorNumber - 1,
+    currentFloor: initializedFloor,
+    currentRoomId: initializedFloor.startRoomId
+  };
+}
+
 // 次のフロアに進む（新しいフロアを生成）
 export function advanceToNextFloor(
   dungeon: Dungeon,
   inventory: PlayerInventory,
   rng: RandomGenerator
 ): Dungeon {
-  const nextFloorNumber = dungeon.currentFloorNumber + 1;
-
-  if (nextFloorNumber >= dungeon.totalFloors) {
+  if (dungeon.currentFloorNumber + 1 >= dungeon.totalFloors) {
     // 最終フロアを超えた場合は変更なし
     return dungeon;
+  } else {
+    return startExplore(dungeon, inventory, rng);
   }
-
-  const newFloor = generateFloor(
-    nextFloorNumber + 1, // フロア番号は1-indexed
-    dungeon.options,
-    inventory,
-    rng
-  );
-
-  return {
-    ...dungeon,
-    currentFloorNumber: nextFloorNumber,
-    currentFloor: newFloor,
-    currentRoomId: null
-  };
 }
 
 // ダンジョンを開始（最初のフロアを生成してスタート部屋を選択可能にする）
@@ -76,30 +97,5 @@ export function startDungeon(
   inventory: PlayerInventory,
   rng: RandomGenerator
 ): Dungeon {
-  // 最初のフロアを生成
-  const firstFloor = generateFloor(1, dungeon.options, inventory, rng);
-  const startRoom = firstFloor.rooms.get(firstFloor.startRoomId);
-
-  if (!startRoom) {
-    return {
-      ...dungeon,
-      currentFloor: firstFloor
-    };
-  }
-
-  // スタート部屋を available に設定
-  const updatedRooms = new Map(firstFloor.rooms);
-  updatedRooms.set(firstFloor.startRoomId, { ...startRoom, status: 'available' });
-
-  const updatedFloor: Floor = {
-    ...firstFloor,
-    rooms: updatedRooms
-  };
-
-  return {
-    ...dungeon,
-    currentFloorNumber: 0,
-    currentFloor: updatedFloor,
-    currentRoomId: firstFloor.startRoomId
-  };
+  return startExplore(dungeon, inventory, rng);
 }
