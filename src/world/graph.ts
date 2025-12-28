@@ -129,7 +129,8 @@ function createRoomsWithLevels(
   for (const layout of layouts) {
     for (let i = 0; i < layout.roomCount; i++) {
       const roomId = `f${floorNumber}_r${roomIds.length}`;
-      const room = createRoomWithReward(roomId, 'normal', layout.level, [], rng, inventory);
+      const room = createRoomWithReward(roomId, 'normal', layout.level, [], rng,
+        inventory);
       rooms.set(roomId, room);
       roomIds.push(roomId);
     }

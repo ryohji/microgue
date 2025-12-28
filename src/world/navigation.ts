@@ -67,11 +67,35 @@ export function clearRoom(dungeon: Dungeon): Dungeon {
   };
 }
 
-// 選択可能な部屋のリストを取得
+// 選択可能な部屋のリストを取得（現在の部屋のnextRoomsのみ）
 export function getAvailableRooms(dungeon: Dungeon): readonly Room[] {
-  return dungeon.currentFloor?.rooms.values()
-    .filter(({ status }) => status === 'available')
-    .toArray() ?? [];
+  if (!dungeon.currentFloor) {
+    return [];
+  } else {
+    if (!dungeon.currentRoomId) {
+      // currentRoomId がない場合（通常は発生しない）
+      return [];
+    } else {
+      const currentRoom = dungeon.currentFloor.rooms.get(dungeon.currentRoomId);
+      if (!currentRoom) {
+        return [];
+      } else {
+        if (currentRoom.status === 'cleared') {
+          // 部屋クリア済み: nextRoomsに含まれるavailableな部屋を返す
+          return currentRoom.nextRooms
+            .map(roomId => dungeon.currentFloor!.rooms.get(roomId))
+            .filter((room): room is Room => room !== undefined && room.status === 'available');
+        } else {
+          // 部屋未クリア（available状態）: この部屋自体を返す
+          if (currentRoom.status === 'available') {
+            return [currentRoom];
+          } else {
+            return [];
+          }
+        }
+      }
+    }
+  }
 }
 
 // 現在の部屋を取得
