@@ -46,16 +46,6 @@ export function renderCombat(state: CombatState): readonly string[] {
     lines.push(`${entity.symbol} ${entity.id.padEnd(8)}: ${bar} ${gaugeStr}${canAct}`);
   }
 
-  lines.push('');
-
-  // 現在のターン
-  if (state.currentTurn) {
-    const actor = state.entities.find(e => e.id === state.currentTurn);
-    if (actor) {
-      lines.push(`>>> ${actor.id}'s turn <<<`);
-    }
-  }
-
   return lines;
 }
 

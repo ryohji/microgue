@@ -389,6 +389,15 @@ function renderRoomPhase(state: FullGameState): string[] {
   lines.push(state.message);
   lines.push('');
 
+  // 現在のターンを表示
+  if (state.combat.currentTurn) {
+    const actor = state.combat.entities.find(e => e.id === state.combat!.currentTurn);
+    if (actor) {
+      lines.push(`>>> ${actor.id}'s turn <<<`);
+      lines.push('');
+    }
+  }
+
   // ターンの状態に応じた制御表示
   if (state.combat.currentTurn === 'player') {
     lines.push('Arrow keys: move, Space: attack, Z: wait, Q: quit');
