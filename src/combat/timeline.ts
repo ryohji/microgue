@@ -42,11 +42,11 @@ export function consumeActionPoints(
 export function getNextActor(
   timeline: ReadonlyMap<string, number>
 ): string | null {
-  let maxGauge = 99;  // 100未満は行動不可
+  let maxGauge = -1;
   let nextActor: string | null = null;
 
   for (const [id, gauge] of timeline) {
-    if (gauge > maxGauge) {
+    if (gauge >= 100 && gauge > maxGauge) {
       maxGauge = gauge;
       nextActor = id;
     }

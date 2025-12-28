@@ -148,17 +148,6 @@ function updateRoom(
 ): FullGameState {
   if (!state.combat) return state;
 
-  // 入力がない場合はタイムラインを進める
-  if (input.queue.length === 0) {
-    const timeline = accumulateTimeline(state.combat.timeline, state.combat.entities, deltaTime);
-    const nextActor = getNextActor(timeline);
-    return {
-      ...state,
-      combat: { ...state.combat, timeline, currentTurn: nextActor }
-    };
-  }
-
-  const key = input.queue[0].key.name;
   const player = state.combat.entities.find(e => e.id === 'player');
   const enemies = state.combat.entities.filter(e => e.id !== 'player');
 
@@ -186,7 +175,7 @@ function updateRoom(
     };
   }
 
-  // ターンがない場合: タイムラインを進めて次のターンを決定
+  // ターンがない場合: タイムラインを進めて次のターンを決定（入力は無視）
   if (!state.combat.currentTurn) {
     const timeline = accumulateTimeline(state.combat.timeline, state.combat.entities, deltaTime);
     const nextActor = getNextActor(timeline);
@@ -196,8 +185,14 @@ function updateRoom(
     };
   }
 
-  // プレイヤーのターン
+  // ターンあり: 入力がなければ待機
+  if (input.queue.length === 0) {
+    return state;
+  }
+
+  // 入力あり: プレイヤーまたは敵のターンを処理
   if (state.combat.currentTurn === 'player') {
+    const key = input.queue[0].key.name;
     const action = getPlayerAction(key, state.combat);
     if (action) {
       const newCombat = executeAction(state.combat, 'player', action, rng);
@@ -210,7 +205,7 @@ function updateRoom(
       return state;
     }
   } else {
-    // 敵のターン: 入力を無視して敵の行動を実行
+    // 敵のターン: 入力を消費して敵の行動を実行
     const action = decideAction(state.combat, state.combat.currentTurn, rng);
     if (action) {
       const newCombat = executeAction(state.combat, state.combat.currentTurn, action, rng);
