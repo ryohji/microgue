@@ -4,7 +4,7 @@ import type { CombatState, Action } from '../types/CombatState.js';
 import type { RandomGenerator } from '../core/random.js';
 import { createGrid } from './grid.js';
 import { initializeTimeline, accumulateTimeline, getNextActor, consumeActionPoints } from './timeline.js';
-import { createPlayer, createEnemy, moveEntity, damageEntity, updateEntity, removeDeadEntities, findEntityAt, calculateLifesteal, healEntity } from './entity.js';
+import { createPlayer, createEnemy, moveEntity, damageEntity, updateEntity, removeDeadEntities, findEntityAt, calculateLifesteal, healEntity, isDead } from './entity.js';
 
 // 戦闘を初期化
 export function initCombat(
@@ -104,11 +104,20 @@ export function executeAction(
       break;
   }
 
+  // 死亡したエンティティを特定
+  const deadEntities = newEntities.filter(e => isDead(e));
+
   // 死亡したエンティティを除去
   newEntities = removeDeadEntities(newEntities);
 
+  // 死亡したエンティティをタイムラインから削除
+  let newTimeline = new Map(state.timeline);
+  for (const dead of deadEntities) {
+    newTimeline.delete(dead.id);
+  }
+
   // AP を消費
-  const newTimeline = consumeActionPoints(state.timeline, entityId, action.apCost);
+  newTimeline = consumeActionPoints(newTimeline, entityId, action.apCost);
 
   return {
     ...state,
