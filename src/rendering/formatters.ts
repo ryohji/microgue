@@ -56,9 +56,6 @@ export function renderCombat(state: CombatState): readonly string[] {
     }
   }
 
-  lines.push('');
-  lines.push('Controls: Arrow keys to move, Space to attack, W to wait, Q to quit');
-
   return lines;
 }
 

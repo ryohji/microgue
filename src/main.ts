@@ -186,6 +186,16 @@ function updateRoom(
     };
   }
 
+  // ターンがない場合: タイムラインを進めて次のターンを決定
+  if (!state.combat.currentTurn) {
+    const timeline = accumulateTimeline(state.combat.timeline, state.combat.entities, deltaTime);
+    const nextActor = getNextActor(timeline);
+    return {
+      ...state,
+      combat: { ...state.combat, timeline, currentTurn: nextActor }
+    };
+  }
+
   // プレイヤーのターン
   if (state.combat.currentTurn === 'player') {
     const action = getPlayerAction(key, state.combat);
@@ -200,21 +210,16 @@ function updateRoom(
       return state;
     }
   } else {
-    if (state.combat.currentTurn) {
-      // 敵のターン: 入力を無視して敵の行動を実行
-      const action = decideAction(state.combat, state.combat.currentTurn, rng);
-      if (action) {
-        const newCombat = executeAction(state.combat, state.combat.currentTurn, action, rng);
-        return {
-          ...state,
-          combat: newCombat,
-          message: `${state.combat.currentTurn} acts`
-        };
-      } else {
-        return state;
-      }
+    // 敵のターン: 入力を無視して敵の行動を実行
+    const action = decideAction(state.combat, state.combat.currentTurn, rng);
+    if (action) {
+      const newCombat = executeAction(state.combat, state.combat.currentTurn, action, rng);
+      return {
+        ...state,
+        combat: newCombat,
+        message: `${state.combat.currentTurn} acts`
+      };
     } else {
-      // ターンがない場合は状態を維持
       return state;
     }
   }
@@ -383,7 +388,19 @@ function renderRoomPhase(state: FullGameState): string[] {
   lines.push('');
   lines.push(state.message);
   lines.push('');
-  lines.push('Arrow keys: move, Space: attack, Z: wait, Q: quit');
+
+  // ターンの状態に応じた制御表示
+  if (state.combat.currentTurn === 'player') {
+    lines.push('Arrow keys: move, Space: attack, Z: wait, Q: quit');
+  } else {
+    if (state.combat.currentTurn) {
+      // 敵のターン
+      lines.push('Press any key to continue, Q: quit');
+    } else {
+      // ターンなし（タイムライン蓄積中）
+      lines.push('Q: quit');
+    }
+  }
 
   return lines;
 }
